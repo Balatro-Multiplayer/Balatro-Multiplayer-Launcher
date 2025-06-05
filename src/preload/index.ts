@@ -1,8 +1,12 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  getInstalledModVersions: () => ipcRenderer.invoke('mod-installation:get-installed-versions'),
+  getAvailableModVersions: () => ipcRenderer.invoke('multiplayer-service:get-available-versions'),
+  loadModVersion: (id: number) => ipcRenderer.invoke('mod-installation:load-version', id)
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

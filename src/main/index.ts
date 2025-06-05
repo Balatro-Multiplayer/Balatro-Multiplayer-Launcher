@@ -1,7 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import {
+  checkDirectoryForMultiplayerInstallation,
+  modInstallationService
+} from './services/mod-installation.service'
+import { multiplayerService } from './services/multiplayer.service'
 
 function createWindow(): void {
   // Create the browser window.
@@ -49,9 +54,15 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
+  ipcMain.handle('mod-installation:get-installed-versions', () =>
+    modInstallationService.checkDirectoryForMultiplayerInstallation()
+  )
+  ipcMain.handle('multiplayer-service:get-available-versions', () =>
+    multiplayerService.getAvailableModVersions()
+  )
+  ipcMain.handle('mod-installation:load-version', (event, id) =>
+    modInstallationService.loadModVersion(id)
+  )
   createWindow()
 
   app.on('activate', function () {
