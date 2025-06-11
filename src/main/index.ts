@@ -60,8 +60,21 @@ app.whenReady().then(() => {
   ipcMain.handle('multiplayer-service:get-available-versions', () =>
     multiplayerService.getAvailableModVersions()
   )
-  ipcMain.handle('mod-installation:load-version', (event, id) =>
-    modInstallationService.loadModVersion(id)
+  ipcMain.handle('mod-installation:load-version', (event, id) => {
+    // Create a callback function that sends progress events to the renderer
+    const progressCallback = (progress: { status: string, progress?: number }) => {
+      event.sender.send('mod-installation:progress', progress)
+    }
+    return modInstallationService.loadModVersion(id, progressCallback)
+  })
+  ipcMain.handle('mod-installation:get-smods-version', () =>
+    modInstallationService.determineSmodsInstalledVersion()
+  )
+  ipcMain.handle('mod-installation:is-lovely-installed', () =>
+    modInstallationService.isLovelyInstalled()
+  )
+  ipcMain.handle('mod-installation:check-compatibility', () =>
+    modInstallationService.checkModCompatibility()
   )
   createWindow()
 
