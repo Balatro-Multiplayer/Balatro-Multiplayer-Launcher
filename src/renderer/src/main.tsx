@@ -6,14 +6,18 @@ import App from './App'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from '@renderer/components/layout'
 import { Toaster } from 'sonner'
+import { ThemeProvider } from '@renderer/lib/theme-provider'
+
 const queryClient = new QueryClient()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Layout>
-        <Toaster richColors closeButton />
-        <App />
-      </Layout>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Layout>
+          <Toaster richColors closeButton />
+          <App />
+        </Layout>
+      </QueryClientProvider>
+    </ThemeProvider>
   </StrictMode>
 )
