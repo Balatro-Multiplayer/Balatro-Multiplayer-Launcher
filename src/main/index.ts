@@ -9,6 +9,11 @@ import {
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
+import { updateElectronApp } from 'update-electron-app'
+import logger from 'electron-log'
+
+//auto-updater
+updateElectronApp({ logger })
 
 // Initialize logger
 loggerService.info('Application starting...')
@@ -70,7 +75,7 @@ app.whenReady().then(() => {
   )
   ipcMain.handle('mod-installation:load-version', (event, id) => {
     // Create a callback function that sends progress events to the renderer
-    const progressCallback = (progress: { status: string, progress?: number }) => {
+    const progressCallback = (progress: { status: string; progress?: number }) => {
       event.sender.send('mod-installation:progress', progress)
     }
     return modInstallationService.loadModVersion(id, progressCallback)
