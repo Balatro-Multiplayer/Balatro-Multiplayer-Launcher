@@ -34,8 +34,7 @@ jobs:
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
         run: bun run build:linux
-
-      - name: build-mac
+      - name: Setup Mac Certificates
         if: matrix.os == 'macos-latest'
         env:
           APPLICATION_CERTIFICATE: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
@@ -44,22 +43,49 @@ jobs:
           INSTALLER_PASSWORD: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ github.run_id }}
         run: |
-          echo $APPLICATION_CERTIFICATE | base64 --decode > application.p12
-          echo $INSTALLER_CERTIFICATE | base64 --decode > installer.p12
+          # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+
+          # import certificates
+          echo "$APPLICATION_CERTIFICATE" | base64 --decode > application.p12
+          echo "$INSTALLER_CERTIFICATE" | base64 --decode > installer.p12
+
+          # import certificates to keychain
           security import application.p12 -k build.keychain -P "$APPLICATION_PASSWORD" -T /usr/bin/codesign
           security import installer.p12 -k build.keychain -P "$INSTALLER_PASSWORD" -T /usr/bin/codesign
+
+          # set keychain settings
+          security set-keychain-settings -t 3600 -u build.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          # remove temporary files
           rm application.p12 installer.p12
 
+          # verify certificates are properly imported
+          security find-identity -v -p codesigning build.keychain
+
       - name: Build
+        if: matrix.os == 'macos-latest'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: bun run build:mac
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          CSC_KEYCHAIN: build.keychain
+          CSC_NAME: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          # increase timeout for codesign
+          defaults write com.apple.security.codesign timeout 300
+
+          # run build with extra logging
+          DEBUG=electron-builder bun run build:mac
+
+      - name: Clean up keychain
+        if: matrix.os == 'macos-latest'
+        run: |
+          security delete-keychain build.keychain
+
 
       - name: build-win
         if: matrix.os == 'windows-latest'
