@@ -24,6 +24,19 @@ interface Logger {
   getAllLogs: () => Promise<string>
 }
 
+interface UpdateStatus {
+  status: string
+  version?: string
+  progress?: {
+    bytesPerSecond: number
+    percent: number
+    transferred: number
+    total: number
+  }
+  error?: string
+  [key: string]: any
+}
+
 interface API{
   getInstalledModVersions: () => Promise<Array<string>>
   getAvailableModVersions: () => Promise<Array<ModVersion>>
@@ -33,6 +46,11 @@ interface API{
   checkCompatibility: () => Promise<CompatibilityResult>
   keepSelectedVersion: (version: string) => Promise<string | undefined>
   onInstallProgress: (callback: (progress: { status: string, progress?: number }) => void) => () => void
+  // Update service APIs
+  checkForUpdates: () => Promise<void>
+  downloadUpdate: () => Promise<void>
+  installUpdate: () => void
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
 }
 

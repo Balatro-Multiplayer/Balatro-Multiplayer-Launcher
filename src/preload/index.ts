@@ -18,6 +18,19 @@ const api = {
     return () => {
       ipcRenderer.removeAllListeners('mod-installation:progress')
     }
+  },
+  // Update service APIs
+  checkForUpdates: () => ipcRenderer.invoke('update-service:check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('update-service:download-update'),
+  installUpdate: () => ipcRenderer.invoke('update-service:install-update'),
+  onUpdateStatus: (callback: (status: { status: string; [key: string]: any }) => void) => {
+    // Add the event listener
+    ipcRenderer.on('update-service:status', (_event, status) => callback(status))
+
+    // Return a function to remove the event listener
+    return () => {
+      ipcRenderer.removeAllListeners('update-service:status')
+    }
   }
 }
 

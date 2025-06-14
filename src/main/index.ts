@@ -8,6 +8,7 @@ import {
 } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
+import { updateService } from './services/update.service'
 
 // Initialize logger
 loggerService.info('Application starting...')
@@ -25,6 +26,9 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  // Initialize the update service with the main window
+  updateService.initialize(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -88,6 +92,12 @@ app.whenReady().then(() => {
   // Logger IPC handlers
   ipcMain.handle('logger:get-log-file-path', () => loggerService.getLogFilePath())
   ipcMain.handle('logger:get-all-logs', () => loggerService.getAllLogs())
+
+  // Update service IPC handlers
+  ipcMain.handle('update-service:check-for-updates', () => updateService.checkForUpdates())
+  ipcMain.handle('update-service:download-update', () => updateService.downloadUpdate())
+  ipcMain.handle('update-service:install-update', () => updateService.installUpdate())
+
   createWindow()
 
   app.on('activate', function () {

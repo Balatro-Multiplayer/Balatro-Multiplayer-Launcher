@@ -18,6 +18,7 @@ import {
 import { useState } from 'react'
 import { modInstallationService } from '@renderer/servicies/mod-installation.service'
 import { toast } from 'sonner'
+import { UpdateNotification } from './components/UpdateNotification'
 
 function App(): React.JSX.Element {
   const installedVersions = useQuery(installedModVersionsQueryOptions)
@@ -118,6 +119,9 @@ function App(): React.JSX.Element {
   }
   return (
     <div className="space-y-8">
+      {/* Update Notification */}
+      <UpdateNotification />
+
       {/* Compatibility Warning */}
       {!compatibility.isLoading && compatibility.data && !compatibility.data.compatible && (
         <div className="bg-destructive/10 border border-destructive rounded-md p-4 text-destructive mb-8">
