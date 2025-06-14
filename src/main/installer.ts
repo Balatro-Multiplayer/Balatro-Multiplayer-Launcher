@@ -2,6 +2,7 @@ import fs from 'fs-extra'
 import * as os from 'node:os'
 import path from 'node:path'
 import { MODS_DIR } from './constants'
+import { loggerService } from './services/logger.service'
 
 const isMac = os.platform() === 'darwin'
 const isWindows = os.platform() === 'win32'

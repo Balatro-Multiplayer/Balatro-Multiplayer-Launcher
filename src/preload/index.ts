@@ -9,7 +9,8 @@ const api = {
   getSmodsVersion: () => ipcRenderer.invoke('mod-installation:get-smods-version'),
   isLovelyInstalled: () => ipcRenderer.invoke('mod-installation:is-lovely-installed'),
   checkCompatibility: () => ipcRenderer.invoke('mod-installation:check-compatibility'),
-  onInstallProgress: (callback: (progress: { status: string, progress?: number }) => void) => {
+  keepSelectedVersion: (version: string) => ipcRenderer.invoke('mod-installation:keep-selected-version', version),
+  onInstallProgress: (callback: (progress: { status: string; progress?: number }) => void) => {
     // Add the event listener
     ipcRenderer.on('mod-installation:progress', (_event, progress) => callback(progress))
 

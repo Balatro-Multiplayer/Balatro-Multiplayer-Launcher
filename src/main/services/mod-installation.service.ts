@@ -8,6 +8,7 @@ import extract from 'extract-zip'
 import { MODS_DIR } from '../constants'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
+import { loggerService } from './logger.service'
 
 const execAsync = promisify(exec)
 const isMac = os.platform() === 'darwin'
@@ -82,8 +83,8 @@ async function checkDirectoryForMultiplayerInstallation(): Promise<Array<string>
 
   const versions = await determineMultiplayerInstalledVersion()
 
-  console.log({ dir, modsDirExists, versions })
-  console.log('checkDirectoryForMultiplayerInstallation')
+  loggerService.info({ dir, modsDirExists, versions })
+  loggerService.debug('checkDirectoryForMultiplayerInstallation')
   return versions
 }
 
@@ -145,7 +146,7 @@ async function storeInstalledVersions() {
             // Remove the original directory
             await fs.remove(path.join(modsDir, dir))
 
-            console.log(`Stored version ${version} in ${versionDir}`)
+            loggerService.info(`Stored version ${version} in ${versionDir}`)
           }
         }
       }
@@ -200,7 +201,7 @@ async function findAllSmodsInstallations() {
         }
       }
     } catch (error) {
-      console.error(`Error checking directory ${dir} for SMods:`, error)
+      loggerService.error(`Error checking directory ${dir} for SMods:`, error)
     }
   }
 
@@ -269,7 +270,7 @@ async function determineSmodsInstalledVersion() {
         }
       }
     } catch (error) {
-      console.error(`Error checking directory ${dir} for SMods:`, error)
+      loggerService.error(`Error checking directory ${dir} for SMods:`, error)
     }
   }
 
@@ -316,13 +317,13 @@ async function determineSmodsInstalledVersion() {
             return json.version
           }
         } catch (error) {
-          console.error(`Error reading JSON file ${jsonFile}:`, error)
+          loggerService.error(`Error reading JSON file ${jsonFile}:`, error)
         }
       }
 
       return 'unknown'
     } catch (error) {
-      console.error('Error determining smods version from smods directory:', error)
+      loggerService.error('Error determining smods version from smods directory:', error)
     }
   }
 
@@ -331,7 +332,7 @@ async function determineSmodsInstalledVersion() {
 }
 
 async function installSmods(version: string = 'latest') {
-  console.log(`Installing smods (requested version: ${version})`)
+  loggerService.info(`Installing smods (requested version: ${version})`)
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -349,12 +350,12 @@ async function installSmods(version: string = 'latest') {
 
   // Get the specified smods release info (or latest if not specified)
   const smodsRelease = await multiplayerService.getSpecificSmodsRelease(version)
-  console.log(`Smods release to install: ${smodsRelease.version}`)
+  loggerService.info(`Smods release to install: ${smodsRelease.version}`)
 
   // Check if smods is already installed with the correct version
   const installedVersion = await determineSmodsInstalledVersion()
   if (installedVersion === smodsRelease.version) {
-    console.log(`Smods ${smodsRelease.version} is already installed. Skipping installation.`)
+    loggerService.info(`Smods ${smodsRelease.version} is already installed. Skipping installation.`)
     return smodsRelease.version
   }
 
@@ -364,14 +365,14 @@ async function installSmods(version: string = 'latest') {
 
   // Find all existing smods installations
   const existingSmodsInstallations = await findAllSmodsInstallations()
-  console.log(`Found ${existingSmodsInstallations.length} existing smods installations`)
+  loggerService.info(`Found ${existingSmodsInstallations.length} existing smods installations`)
 
   // If any installations exist, back up the first one (which should be the active one)
   // and remove all of them
   if (existingSmodsInstallations.length > 0 && installedVersion) {
     // Create a backup directory for the current version
     const backupDir = path.join(versionStorageDir, `smods-${installedVersion}`)
-    console.log(`Backing up smods ${installedVersion} to ${backupDir}`)
+    loggerService.info(`Backing up smods ${installedVersion} to ${backupDir}`)
 
     // Ensure the backup directory exists and is empty
     await fs.ensureDir(backupDir)
@@ -379,11 +380,11 @@ async function installSmods(version: string = 'latest') {
 
     // Copy the first smods installation to the backup directory
     await fs.copy(existingSmodsInstallations[0], backupDir)
-    console.log(`Successfully backed up smods ${installedVersion}`)
+    loggerService.info(`Successfully backed up smods ${installedVersion}`)
 
     // Remove all existing smods installations
     for (const installPath of existingSmodsInstallations) {
-      console.log(`Removing existing smods installation at ${installPath}`)
+      loggerService.info(`Removing existing smods installation at ${installPath}`)
       await fs.remove(installPath)
     }
   }
@@ -434,7 +435,7 @@ async function installSmods(version: string = 'latest') {
     // Clean up the temporary directory
     await fs.remove(tempDir)
 
-    console.log(`Successfully installed smods ${smodsRelease.version}`)
+    loggerService.info(`Successfully installed smods ${smodsRelease.version}`)
     return smodsRelease.version
   } catch (error) {
     // Clean up on error
@@ -448,7 +449,7 @@ async function isLovelyInstalled() {
   // Get the game directory
   const gameDir = await getGameDirectory()
   if (!gameDir) {
-    console.log('Game directory not found. Cannot check if lovely is installed.')
+    loggerService.info('Game directory not found. Cannot check if lovely is installed.')
     return false
   }
 
@@ -468,7 +469,7 @@ async function isLovelyInstalled() {
 }
 
 async function installLovely(version: string = 'latest') {
-  console.log(`Installing lovely (requested version: ${version})`)
+  loggerService.info(`Installing lovely (requested version: ${version})`)
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -478,18 +479,18 @@ async function installLovely(version: string = 'latest') {
   const gameDir = await getGameDirectory()
   if (!gameDir) {
     // For now, we'll ask the user to manually install lovely
-    console.log('Game directory not found. Please install lovely manually.')
+    loggerService.info('Game directory not found. Please install lovely manually.')
     return
   }
 
   // Check if lovely is already installed
   const lovelyInstalled = await isLovelyInstalled()
   if (lovelyInstalled) {
-    console.log('Lovely is already installed. Skipping installation.')
+    loggerService.info('Lovely is already installed. Skipping installation.')
     return true
   }
 
-  console.log('Lovely is not installed. Installing...')
+  loggerService.info('Lovely is not installed. Installing...')
 
   // Create a temporary directory for downloading
   const tempDir = path.join(os.tmpdir(), 'balatro-lovely-temp')
@@ -498,7 +499,7 @@ async function installLovely(version: string = 'latest') {
   try {
     // Get the download URL for the current platform and architecture with the specified version
     const downloadUrl = multiplayerService.getLovelyDownloadUrl(platform, arch, version)
-    console.log(`Downloading lovely from ${downloadUrl}`)
+    loggerService.info(`Downloading lovely from ${downloadUrl}`)
 
     // Download the file
     const fileName = path.basename(downloadUrl)
@@ -578,7 +579,7 @@ async function installLovely(version: string = 'latest') {
     // Clean up the temporary directory
     await fs.remove(tempDir)
 
-    console.log('Successfully installed lovely')
+    loggerService.info('Successfully installed lovely')
     return true
   } catch (error) {
     // Clean up on error
@@ -592,7 +593,7 @@ async function loadModVersion(
   progressCallback?: (progress: { status: string; progress?: number }) => void
 ) {
   progressCallback({ status: 'Starting installation', progress: 0 })
-  console.log('loadModVersion', id)
+  loggerService.info('loadModVersion', id)
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -613,7 +614,7 @@ async function loadModVersion(
   if (!versionToInstall) {
     throw new Error(`Version with ID ${id} not found`)
   }
-  console.log({ versionToInstall })
+  loggerService.info({ versionToInstall })
 
   // Create a temporary directory for downloading
   const tempDir = path.join(os.tmpdir(), 'balatro-multiplayer-temp')
@@ -628,7 +629,7 @@ async function loadModVersion(
     const versionDir = path.join(versionStorageDir, `multiplayer-${versionToInstall.version}`)
 
     if (await fs.pathExists(versionDir)) {
-      console.log(`Found version ${versionToInstall.version} in storage`)
+      loggerService.info(`Found version ${versionToInstall.version} in storage`)
 
       // Check if the storage contains a valid mod
       const storageFiles = await fs.readdir(versionDir)
@@ -651,19 +652,19 @@ async function loadModVersion(
 
           // Copy all contents from the storage directory to the target mod directory
           await fs.copy(versionDir, targetModDir)
-          console.log(`Restored version ${versionToInstall.version} from storage`)
+          loggerService.info(`Restored version ${versionToInstall.version} from storage`)
 
           // Install smods and lovely alongside the multiplayer mod
           try {
             // Check if the mod specifies a specific version of smods or lovely
             const smodsVersion = versionToInstall.smods_version || 'latest'
             const lovelyVersion = versionToInstall.lovely_version || 'latest'
-            console.log(smodsVersion)
+            loggerService.info(smodsVersion)
             await installSmods(smodsVersion, progressCallback)
             await installLovely(lovelyVersion, progressCallback)
             progressCallback?.({ status: 'Installation complete!' })
           } catch (error) {
-            console.error('Error installing additional mods:', error)
+            loggerService.error('Error installing additional mods:', error)
             progressCallback?.({ status: `Error: ${error.message}` })
           }
 
@@ -706,7 +707,7 @@ async function loadModVersion(
     const extractedDirs = (await fs.readdir(extractDir)).filter((e) =>
       fs.statSync(path.join(extractDir, e)).isDirectory()
     )
-    console.log(extractedDirs)
+    loggerService.info(extractedDirs)
 
     if (extractedDirs.length === 0) {
       throw new Error('No directories found in the extracted zip file')
@@ -728,17 +729,9 @@ async function loadModVersion(
     // Install smods and lovely alongside the multiplayer mod
     try {
       // First, read the mod's JSON file to check for specific versions
-      const modFiles = await fs.readdir(targetModDir)
-      const jsonFile = modFiles.find((e) => e.endsWith('.json'))
 
-      let smodsVersion = 'latest'
-      let lovelyVersion = 'latest'
-
-      if (jsonFile) {
-        const json = await fs.readJSON(path.join(targetModDir, jsonFile))
-        smodsVersion = json.smods_version || 'latest'
-        lovelyVersion = json.lovely_version || 'latest'
-      }
+      const smodsVersion = versionToInstall.smods_version || 'latest'
+      const lovelyVersion = versionToInstall.lovely_version || 'latest'
 
       progressCallback?.({ status: 'Installing SMods dependency...' })
       await installSmods(smodsVersion)
@@ -746,14 +739,14 @@ async function loadModVersion(
       await installLovely(lovelyVersion)
       progressCallback?.({ status: 'Installation complete!' })
     } catch (error) {
-      console.error('Error installing additional mods:', error)
+      loggerService.error('Error installing additional mods:', error)
       progressCallback?.({ status: `Error: ${error.message}` })
     }
 
     // Clean up the temporary directory
     await fs.remove(tempDir)
 
-    console.log(`Successfully installed version ${versionToInstall.version}`)
+    loggerService.info(`Successfully installed version ${versionToInstall.version}`)
   } catch (error) {
     // Clean up on error
     await fs.remove(tempDir)
@@ -780,14 +773,14 @@ function normalizeSmodsVersion(version: string): string {
 async function checkModCompatibility() {
   // Get the installed multiplayer version
   const installedVersions = await determineMultiplayerInstalledVersion()
-  console.log(installedVersions)
+  loggerService.info(installedVersions)
   if (installedVersions.length === 0) {
     return { compatible: true, message: null, requiredVersionId: null } // No multiplayer mod installed, so no compatibility issues
   }
 
   // Get the installed smods version
   const smodsVersion = await determineSmodsInstalledVersion()
-  console.log({ smodsVersion })
+  loggerService.info({ smodsVersion })
   if (!smodsVersion) {
     return { compatible: true, message: null, requiredVersionId: null } // No smods installed, so no compatibility issues
   }
@@ -831,6 +824,70 @@ async function checkModCompatibility() {
   return { compatible: true, message: null, requiredVersionId: null }
 }
 
+// Function to keep a selected version and move others to storage
+async function keepSelectedVersion(versionToKeep: string) {
+  if (!modsDir) {
+    throw new Error('Mods directory not found')
+  }
+
+  if (!versionStorageDir) {
+    throw new Error('Version storage directory not found')
+  }
+
+  // Ensure version storage directory exists
+  await fs.ensureDir(versionStorageDir)
+
+  // Get all installed versions
+  const installedVersions = await determineMultiplayerInstalledVersion()
+
+  // If there's only one version or no versions, no need to do anything
+  if (installedVersions.length <= 1) {
+    return
+  }
+
+  // Find all directories containing multiplayer mods
+  const dirs = (await fs.readdir(modsDir)).filter((e) =>
+    fs.statSync(path.join(modsDir, e)).isDirectory()
+  )
+
+  for (const dir of dirs) {
+    const files = await fs.readdir(path.join(modsDir, dir))
+    const jsonFile = files.find((e) => e.endsWith('.json'))
+
+    if (jsonFile) {
+      const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
+
+      if (json.id === 'Multiplayer') {
+        const version = json.version
+
+        // If this is not the version to keep, move it to storage
+        if (version !== versionToKeep) {
+          // Create a version-specific storage directory
+          const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
+
+          // Ensure the storage directory exists
+          await fs.ensureDir(versionDir)
+
+          // Remove any existing content in the storage directory
+          await fs.emptyDir(versionDir)
+
+          // Copy the directory contents to storage
+          await fs.copy(path.join(modsDir, dir), versionDir)
+
+          // Remove the original directory
+          await fs.remove(path.join(modsDir, dir))
+
+          loggerService.info(`Moved version ${version} to storage`)
+        } else {
+          loggerService.info(`Keeping version ${version}`)
+        }
+      }
+    }
+  }
+
+  return versionToKeep
+}
+
 export const modInstallationService = {
   determineMultiplayerInstalledVersion,
   checkDirectoryForMultiplayerInstallation,
@@ -840,5 +897,6 @@ export const modInstallationService = {
   getGameDirectory,
   determineSmodsInstalledVersion,
   isLovelyInstalled,
-  checkModCompatibility
+  checkModCompatibility,
+  keepSelectedVersion
 }

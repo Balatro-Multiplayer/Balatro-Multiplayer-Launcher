@@ -1,6 +1,8 @@
 import ky from 'ky'
+import { loggerService } from './logger.service'
 
-const BASE_URL = 'http://localhost:3000'
+// const BASE_URL = 'http://localhost:3000'
+const BASE_URL = 'https://balatromp.com'
 const instance = ky.create({
   prefixUrl: BASE_URL
 })
@@ -36,7 +38,7 @@ class MultiplayerService {
     // Otherwise, try to find the specific version
     const response = await ky.get(SMODS_RELEASES_URL).json<any[]>()
     if (Array.isArray(response)) {
-      console.log(response)
+      loggerService.debug('Smods releases response:', response)
       const specificRelease = response.find((release) => release.tag_name === version)
       if (specificRelease) {
         return {
@@ -49,7 +51,7 @@ class MultiplayerService {
     }
 
     // If the specific version is not found, fall back to the latest release
-    console.warn(`Smods version ${version} not found, falling back to latest`)
+    loggerService.warn(`Smods version ${version} not found, falling back to latest`)
     return this.getLatestSmodsRelease()
   }
 

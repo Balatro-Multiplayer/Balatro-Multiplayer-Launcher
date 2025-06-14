@@ -47,7 +47,29 @@ function App(): React.JSX.Element {
       // Show error toast and dismiss loading toast
       toast.dismiss(toastId)
       toast.error('Installation failed')
-      console.error('Installation error:', error)
+      window.api.logger.error('Installation error:', error)
+    }
+  })
+
+  const keepSelectedVersion = useMutation({
+    mutationFn: (version: string) => window.api.keepSelectedVersion(version),
+    onMutate: () => {
+      // Show loading toast when mutation starts
+      return toast.loading('Processing version selection...')
+    },
+    onSuccess: (_, __, toastId) => {
+      // Show success toast and dismiss loading toast
+      toast.dismiss(toastId)
+      toast.success('Version selected successfully')
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: installedModVersionsQueryOptions.queryKey })
+    },
+    onError: (error, _, toastId) => {
+      // Show error toast and dismiss loading toast
+      toast.dismiss(toastId)
+      toast.error('Failed to select version')
+      console.error('Version selection error:', error)
     }
   })
   const versions = installedVersions?.data
@@ -82,7 +104,7 @@ function App(): React.JSX.Element {
               variant="outline"
               className="p-4 h-auto flex flex-col items-center justify-center hover:bg-primary/5 hover:border-primary transition-colors"
               key={version}
-              onClick={() => installedVersions.refetch()}
+              onClick={() => keepSelectedVersion.mutate(version)}
             >
               <span className="text-lg font-medium">{version}</span>
               <span className="text-sm text-muted-foreground mt-1">

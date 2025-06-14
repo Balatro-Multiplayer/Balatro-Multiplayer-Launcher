@@ -7,6 +7,10 @@ import {
   modInstallationService
 } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
+import { loggerService } from './services/logger.service'
+
+// Initialize logger
+loggerService.info('Application starting...')
 
 function createWindow(): void {
   // Create the browser window.
@@ -76,6 +80,14 @@ app.whenReady().then(() => {
   ipcMain.handle('mod-installation:check-compatibility', () =>
     modInstallationService.checkModCompatibility()
   )
+
+  ipcMain.handle('mod-installation:keep-selected-version', (_, version) =>
+    modInstallationService.keepSelectedVersion(version)
+  )
+
+  // Logger IPC handlers
+  ipcMain.handle('logger:get-log-file-path', () => loggerService.getLogFilePath())
+  ipcMain.handle('logger:get-all-logs', () => loggerService.getAllLogs())
   createWindow()
 
   app.on('activate', function () {

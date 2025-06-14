@@ -15,6 +15,15 @@ interface CompatibilityResult {
   requiredVersionId: number | null
 }
 
+interface Logger {
+  info: (message: string, ...args: any[]) => void
+  warn: (message: string, ...args: any[]) => void
+  error: (message: string | Error, ...args: any[]) => void
+  debug: (message: string, ...args: any[]) => void
+  getLogFilePath: () => Promise<string>
+  getAllLogs: () => Promise<string>
+}
+
 interface API{
   getInstalledModVersions: () => Promise<Array<string>>
   getAvailableModVersions: () => Promise<Array<ModVersion>>
@@ -22,7 +31,9 @@ interface API{
   getSmodsVersion: () => Promise<string | null>
   isLovelyInstalled: () => Promise<boolean>
   checkCompatibility: () => Promise<CompatibilityResult>
+  keepSelectedVersion: (version: string) => Promise<string | undefined>
   onInstallProgress: (callback: (progress: { status: string, progress?: number }) => void) => () => void
+  logger: Logger
 }
 
 declare global {
