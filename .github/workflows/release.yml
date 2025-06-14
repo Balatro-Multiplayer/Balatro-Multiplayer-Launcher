@@ -3,7 +3,13 @@ on:
   push:
     tags:
       - 'v*'
-
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Debug build'
+        required: false
+        default: false
+        type: boolean
 jobs:
   release:
     runs-on: ${{ matrix.os }}
