@@ -724,7 +724,29 @@ async function loadModVersion(
 
     // Copy the extracted mod to the target directory
     progressCallback?.({ status: 'Installing mod files...' })
-    await fs.copy(path.join(extractDir), targetModDir)
+
+    // Check if the extracted content is a single folder
+    const extractedContents = await fs.readdir(extractDir)
+    const singleFolderPath =
+      extractedContents.length === 1 &&
+      fs.statSync(path.join(extractDir, extractedContents[0])).isDirectory()
+        ? path.join(extractDir, extractedContents[0])
+        : null
+
+    if (singleFolderPath) {
+      // If it's a single folder, copy its contents directly to avoid nesting
+      loggerService.info('Detected single folder in archive, extracting its contents directly')
+      const folderContents = await fs.readdir(singleFolderPath)
+      for (const item of folderContents) {
+        await fs.copy(path.join(singleFolderPath, item), path.join(targetModDir, item))
+      }
+    } else {
+      // Otherwise, copy all contents from the extract directory
+      const contents = await fs.readdir(extractDir)
+      for (const item of contents) {
+        await fs.copy(path.join(extractDir, item), path.join(targetModDir, item))
+      }
+    }
 
     // Install smods and lovely alongside the multiplayer mod
     try {
@@ -787,7 +809,7 @@ async function checkModCompatibility() {
 
   // Get available versions from the API endpoint
   const availableVersions = await multiplayerService.getAvailableModVersions()
-
+  console.log(availableVersions)
   // Find the installed version in the available versions
   for (const installedVersion of installedVersions) {
     const matchingVersion = availableVersions.find((v) => v.version === installedVersion)

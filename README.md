@@ -1,4 +1,4 @@
-# balatro-multiplayer-helper
+# Balatro Multiplayer Launcher (BMP Launcher)
 
 An Electron application with React and TypeScript
 

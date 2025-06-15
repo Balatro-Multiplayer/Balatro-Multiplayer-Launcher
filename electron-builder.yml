@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: balatro-multiplayer-helper
+appId: com.balatromp.launcher
+productName: Balatro Multiplayer Launcher
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: balatro-multiplayer-helper
+  executableName: bmp-launcher
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -27,7 +27,7 @@ mac:
   target:
     - dmg
     - zip
-  notarize: true
+  notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
@@ -40,6 +40,3 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://s3.andrii.es/balatro-mp-helper-releases

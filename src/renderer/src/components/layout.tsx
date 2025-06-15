@@ -7,7 +7,7 @@ export function Layout({ children }: PropsWithChildren) {
       <div className="container mx-auto p-6 max-w-3xl">
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Balatro Multiplayer Helper</h1>
+            <h1 className="text-3xl font-bold text-primary">Balatro Multiplayer Launcher</h1>
             <p className="text-muted-foreground mt-2">Manage your multiplayer mod versions with ease</p>
           </div>
           <ThemeToggle />

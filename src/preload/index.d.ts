@@ -8,6 +8,9 @@ interface ModVersion{
   createdAt: string
   updatedAt: string
   smods_version?: string
+  lovely_version?: string
+  branchId: number
+  branchName: string
 }
 interface CompatibilityResult {
   compatible: boolean
