@@ -23,11 +23,12 @@ mac:
   gatekeeperAssess: false
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  signIgnore: ["node_modules/*"]
   target:
     - dmg
     - zip
-  notarize: false
+  notarize: true
+  asarUnpack:
+    - resources/**
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
