@@ -9,10 +9,13 @@ const SETTINGS_FILE = path.join(app.getPath('userData'), 'settings.json')
 // Define the settings interface
 interface Settings {
   gameDirectory?: string
+  onboardingCompleted?: boolean
 }
 
 // Default settings
-const DEFAULT_SETTINGS: Settings = {}
+const DEFAULT_SETTINGS: Settings = {
+  onboardingCompleted: false
+}
 
 class SettingsService {
   private settings: Settings = DEFAULT_SETTINGS
@@ -76,6 +79,16 @@ class SettingsService {
   // Set the game directory
   setGameDirectory(directory: string): void {
     this.setSetting('gameDirectory', directory)
+  }
+
+  // Check if onboarding has been completed
+  isOnboardingCompleted(): boolean {
+    return !!this.settings.onboardingCompleted
+  }
+
+  // Mark onboarding as completed
+  setOnboardingCompleted(completed: boolean = true): void {
+    this.setSetting('onboardingCompleted', completed)
   }
 }
 

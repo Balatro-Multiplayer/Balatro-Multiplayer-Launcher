@@ -1,20 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   availableModVersionsQueryOptions,
+  compatibilityQueryOptions,
   installedModVersionsQueryOptions,
-  smodsVersionQueryOptions,
   lovelyInstalledQueryOptions,
-  compatibilityQueryOptions
+  onboardingCompletedQueryOptions,
+  smodsVersionQueryOptions
 } from '@renderer/queries'
-import { RefreshCcw, Info, ChevronRight, CheckCircle2, RotateCw } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Info, RefreshCcw } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
-import { useState, useMemo, useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { modInstallationService } from '@renderer/servicies/mod-installation.service'
 import { toast } from 'sonner'
-import { useUpdateStatus } from './hooks/use-update-status'
 import { Header } from './components/header'
+import { OnboardingPage } from './components/onboarding-page'
 import {
   Card,
   CardContent,
@@ -25,11 +26,11 @@ import {
 } from './components/ui/card'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogClose
+  DialogTitle
 } from './components/ui/dialog'
 
 function App(): React.JSX.Element {
@@ -38,8 +39,12 @@ function App(): React.JSX.Element {
   const smodsVersion = useQuery(smodsVersionQueryOptions)
   const lovelyInstalled = useQuery(lovelyInstalledQueryOptions)
   const compatibility = useQuery(compatibilityQueryOptions)
-  const { data: updateStatus } = useUpdateStatus()
+  const { data: onboardingCompleted, isLoading: isLoadingOnboarding } = useQuery(
+    onboardingCompletedQueryOptions
+  )
   const queryClient = useQueryClient()
+
+  // Onboarding state is handled by conditional rendering
 
   const loadModVersion = useMutation({
     mutationFn: ({ id, forceDownload = false }: { id: number; forceDownload?: boolean }) =>
@@ -162,6 +167,11 @@ function App(): React.JSX.Element {
 
     return result
   }, [availableVersions.data, compareSemver])
+
+  // Show onboarding page if onboarding hasn't been completed
+  if (!isLoadingOnboarding && onboardingCompleted === false) {
+    return <OnboardingPage />
+  }
 
   if (installedVersions.isLoading) {
     return (

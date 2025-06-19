@@ -51,3 +51,8 @@ export const defaultGameDirectoryQueryOptions = queryOptions({
   queryFn: () => settingsService.getDefaultGameDirectory(),
   queryKey: ['default-game-directory']
 })
+
+export const onboardingCompletedQueryOptions = queryOptions({
+  queryFn: () => settingsService.isOnboardingCompleted(),
+  queryKey: ['onboarding-completed']
+})

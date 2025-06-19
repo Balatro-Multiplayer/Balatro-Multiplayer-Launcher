@@ -37,7 +37,6 @@ export function Header() {
           <p className="text-muted-foreground mt-1">
             Manage your multiplayer mod versions with ease
           </p>
-          {appVersion && <span className="text-sm text-muted-foreground">v{appVersion}</span>}
         </div>
 
         <div className="flex items-center space-x-3">

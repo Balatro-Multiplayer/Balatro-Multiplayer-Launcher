@@ -128,6 +128,13 @@ app.whenReady().then(() => {
     return null
   })
 
+  // Onboarding IPC handlers
+  ipcMain.handle('settings:is-onboarding-completed', () => settingsService.isOnboardingCompleted())
+  ipcMain.handle('settings:set-onboarding-completed', (_, completed = true) => {
+    settingsService.setOnboardingCompleted(completed)
+    return true
+  })
+
   createWindow()
 
   app.on('activate', function () {

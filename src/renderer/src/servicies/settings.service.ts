@@ -13,6 +13,16 @@ class SettingsService {
   async getDefaultGameDirectory(): Promise<string | null> {
     return window.api.getDefaultGameDirectory()
   }
+
+  // Check if onboarding has been completed
+  async isOnboardingCompleted(): Promise<boolean> {
+    return window.api.isOnboardingCompleted()
+  }
+
+  // Mark onboarding as completed
+  async setOnboardingCompleted(completed: boolean = true): Promise<void> {
+    return window.api.setOnboardingCompleted(completed)
+  }
 }
 
 export const settingsService = new SettingsService()
