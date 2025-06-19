@@ -2,5 +2,5 @@ provider: generic
 # TODO: Replace with the actual URL of your update server
 # This URL should point to a directory containing the latest-{platform}.yml file
 # and the installer files (.exe, .dmg, etc.)
-url: https://example.com/auto-updates
+url: file://dist
 updaterCacheDirName: bmp-launcher-updater

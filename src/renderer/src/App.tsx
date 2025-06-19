@@ -9,7 +9,7 @@ import {
 import { RefreshCcw, Info, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { modInstallationService } from '@renderer/servicies/mod-installation.service'
 import { toast } from 'sonner'
@@ -93,24 +93,42 @@ function App(): React.JSX.Element {
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedVersionForModal, setSelectedVersionForModal] = useState<number | null>(null)
-  const [selectedBranchTab, setSelectedBranchTab] = useState<string>("1") // Default to main branch (id: 1)
+  const [selectedBranchTab, setSelectedBranchTab] = useState<string>('1') // Default to main branch (id: 1)
+  const [appVersion, setAppVersion] = useState<string>('')
+
+  // Fetch app version on component mount
+  useEffect(() => {
+    const fetchAppVersion = async () => {
+      try {
+        const version = await window.api.getAppVersion()
+        setAppVersion(version)
+      } catch (error) {
+        console.error('Error fetching app version:', error)
+      }
+    }
+
+    fetchAppVersion()
+  }, [])
 
   // Group versions by branch
   const versionsByBranch = useMemo(() => {
     if (!availableVersions.data) return {}
 
-    return availableVersions.data.reduce((acc, version) => {
-      const branchId = version.branchId.toString()
-      if (!acc[branchId]) {
-        acc[branchId] = {
-          id: branchId,
-          name: version.branchName,
-          versions: []
+    return availableVersions.data.reduce(
+      (acc, version) => {
+        const branchId = version.branchId.toString()
+        if (!acc[branchId]) {
+          acc[branchId] = {
+            id: branchId,
+            name: version.branchName,
+            versions: []
+          }
         }
-      }
-      acc[branchId].versions.push(version)
-      return acc
-    }, {} as Record<string, { id: string; name: string; versions: typeof availableVersions.data }>)
+        acc[branchId].versions.push(version)
+        return acc
+      },
+      {} as Record<string, { id: string; name: string; versions: typeof availableVersions.data }>
+    )
   }, [availableVersions.data])
 
   if (installedVersions.isLoading) {
@@ -196,20 +214,25 @@ function App(): React.JSX.Element {
 
         <div className="bg-primary/5 rounded-md p-4 space-y-4">
           <div>
+            <p className="text-sm text-muted-foreground mb-1">Launcher Version:</p>
+            <p className="text-lg font-medium">{appVersion ? `v${appVersion}` : 'Loading...'}</p>
+          </div>
+
+          <div>
             <p className="text-sm text-muted-foreground mb-1">Multiplayer Mod:</p>
             <p className="text-lg font-medium">
               {installedVersions.data?.[0] ? (
                 <>
                   {installedVersions.data[0]}
-                  {availableVersions.data && (
+                  {availableVersions.data &&
                     (() => {
                       const installedVersion = availableVersions.data.find(
                         (v) => v.version === installedVersions.data?.[0]
-                      );
+                      )
                       return installedVersion ? (
                         <Badge
-                          variant={installedVersion.branchId === 1 ? "secondary" : "outline"}
-                          className={`ml-2 ${installedVersion.branchId === 1 ? "bg-primary/10 hover:bg-primary/10" : "text-muted-foreground"}`}
+                          variant={installedVersion.branchId === 1 ? 'secondary' : 'outline'}
+                          className={`ml-2 ${installedVersion.branchId === 1 ? 'bg-primary/10 hover:bg-primary/10' : 'text-muted-foreground'}`}
                         >
                           {installedVersion.branchId === 1 ? (
                             <>
@@ -220,9 +243,8 @@ function App(): React.JSX.Element {
                             installedVersion.branchName
                           )}
                         </Badge>
-                      ) : null;
-                    })()
-                  )}
+                      ) : null
+                    })()}
                 </>
               ) : (
                 'Not installed'
@@ -284,13 +306,9 @@ function App(): React.JSX.Element {
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : !availableVersions.data?.length ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No versions available
-          </div>
+          <div className="text-center py-8 text-muted-foreground">No versions available</div>
         ) : Object.keys(versionsByBranch).length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No versions available
-          </div>
+          <div className="text-center py-8 text-muted-foreground">No versions available</div>
         ) : (
           <Tabs
             defaultValue={selectedBranchTab}
@@ -299,15 +317,15 @@ function App(): React.JSX.Element {
             className="w-full"
           >
             <TabsList className="mb-4">
-              {Object.values(versionsByBranch).map(branch => (
+              {Object.values(versionsByBranch).map((branch) => (
                 <TabsTrigger key={branch.id} value={branch.id} className="flex items-center gap-1">
-                  {branch.id === "1" && <CheckCircle2 className="h-3 w-3" />}
-                  {branch.id === "1" ? "Main" : branch.name}
+                  {branch.id === '1' && <CheckCircle2 className="h-3 w-3" />}
+                  {branch.id === '1' ? 'Main' : branch.name}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {Object.values(versionsByBranch).map(branch => (
+            {Object.values(versionsByBranch).map((branch) => (
               <TabsContent key={branch.id} value={branch.id} className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {branch.versions.map((version) => (
@@ -325,7 +343,8 @@ function App(): React.JSX.Element {
                           <CardTitle className="text-lg">{version.name}</CardTitle>
                         </div>
                         <CardDescription className="text-xs text-muted-foreground">
-                          Version: {version.version} • Released: {new Date(version.createdAt).toLocaleDateString()}
+                          Version: {version.version} • Released:{' '}
+                          {new Date(version.createdAt).toLocaleDateString()}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -338,9 +357,9 @@ function App(): React.JSX.Element {
                                 size="sm"
                                 className="mt-2 p-0 h-auto text-xs flex items-center text-primary"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedVersionForModal(version.id);
-                                  setModalOpen(true);
+                                  e.stopPropagation()
+                                  setSelectedVersionForModal(version.id)
+                                  setModalOpen(true)
                                 }}
                               >
                                 <Info className="h-3 w-3 mr-1" />
@@ -350,16 +369,20 @@ function App(): React.JSX.Element {
                             )}
                           </>
                         ) : (
-                          <p className="text-sm text-muted-foreground italic">No description available</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            No description available
+                          </p>
                         )}
                       </CardContent>
                       <CardFooter>
                         <Button
                           className="w-full"
-                          variant={selectedVersion === version.id.toString() ? "default" : "outline"}
+                          variant={
+                            selectedVersion === version.id.toString() ? 'default' : 'outline'
+                          }
                           onClick={(e) => {
-                            e.stopPropagation();
-                            loadModVersion.mutate(version.id);
+                            e.stopPropagation()
+                            loadModVersion.mutate(version.id)
                           }}
                         >
                           Install {version.name}
@@ -372,49 +395,48 @@ function App(): React.JSX.Element {
             ))}
           </Tabs>
         )}
-
       </div>
 
       {/* Description Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-2xl">
-          {selectedVersionForModal && (() => {
-            const version = availableVersions.data?.find(v => v.id === selectedVersionForModal);
-            return version ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle>
-                    {version.name}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Version: {version.version} • Released: {new Date(version.createdAt).toLocaleDateString()}
-                    {version.branchId !== 1 && ` • Branch: ${version.branchName}`}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium mb-2">Description:</h3>
-                  <div className="text-sm whitespace-pre-wrap">
-                    {version.description || "No description available"}
+          {selectedVersionForModal &&
+            (() => {
+              const version = availableVersions.data?.find((v) => v.id === selectedVersionForModal)
+              return version ? (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{version.name}</DialogTitle>
+                    <DialogDescription>
+                      Version: {version.version} • Released:{' '}
+                      {new Date(version.createdAt).toLocaleDateString()}
+                      {version.branchId !== 1 && ` • Branch: ${version.branchName}`}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium mb-2">Description:</h3>
+                    <div className="text-sm whitespace-pre-wrap">
+                      {version.description || 'No description available'}
+                    </div>
                   </div>
-                </div>
-                <div className="flex justify-end mt-4">
-                  <Button
-                    onClick={() => {
-                      setModalOpen(false);
-                      loadModVersion.mutate(version.id);
-                    }}
-                  >
-                    Install This Version
-                  </Button>
-                  <DialogClose asChild>
-                    <Button variant="outline" className="ml-2">
-                      Close
+                  <div className="flex justify-end mt-4">
+                    <Button
+                      onClick={() => {
+                        setModalOpen(false)
+                        loadModVersion.mutate(version.id)
+                      }}
+                    >
+                      Install This Version
                     </Button>
-                  </DialogClose>
-                </div>
-              </>
-            ) : null;
-          })()}
+                    <DialogClose asChild>
+                      <Button variant="outline" className="ml-2">
+                        Close
+                      </Button>
+                    </DialogClose>
+                  </div>
+                </>
+              ) : null
+            })()}
         </DialogContent>
       </Dialog>
     </div>

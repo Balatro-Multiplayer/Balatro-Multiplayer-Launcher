@@ -53,6 +53,7 @@ interface API{
   checkForUpdates: () => Promise<void>
   downloadUpdate: () => Promise<void>
   installUpdate: () => void
+  getAppVersion: () => Promise<string>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
 }

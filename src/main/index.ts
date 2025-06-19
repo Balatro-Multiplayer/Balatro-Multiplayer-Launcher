@@ -6,10 +6,8 @@ import { modInstallationService } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
-
 // Initialize logger
 loggerService.info('Application starting...')
-
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -94,6 +92,9 @@ app.whenReady().then(() => {
   ipcMain.handle('update-service:check-for-updates', () => updateService.checkForUpdates())
   ipcMain.handle('update-service:download-update', () => updateService.downloadUpdate())
   ipcMain.handle('update-service:install-update', () => updateService.installUpdate())
+
+  // App info IPC handlers
+  ipcMain.handle('app:get-version', () => app.getVersion())
 
   createWindow()
 

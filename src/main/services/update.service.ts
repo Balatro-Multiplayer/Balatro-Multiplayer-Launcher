@@ -4,7 +4,7 @@ import { loggerService } from './logger.service'
 
 // Configure auto-updater
 autoUpdater.logger = loggerService
-autoUpdater.autoDownload = false
+autoUpdater.autoDownload = true
 autoUpdater.autoInstallOnAppQuit = true
 
 class UpdateService {
