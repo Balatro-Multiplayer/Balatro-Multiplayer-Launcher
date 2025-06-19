@@ -1,7 +1,8 @@
 {
   "name": "balatro-multiplayer-launcher",
+  "productName": "Balatro Multiplayer Launcher",
   "version": "1.0.2",
-  "description": "An Electron application with React and TypeScript",
+  "description": "Official launcher for Balatro Multiplayer",
   "main": "./out/main/index.js",
   "repository": {
     "type": "git",
