@@ -33,6 +33,8 @@ jobs:
 
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun run build:linux
       - name: Setup Mac Certificates
         if: matrix.os == 'macos-latest'
@@ -74,6 +76,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           CSC_KEYCHAIN: build.keychain
           CSC_NAME: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # increase timeout for codesign
           defaults write com.apple.security.codesign timeout 300
@@ -89,6 +92,8 @@ jobs:
 
       - name: build-win
         if: matrix.os == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun run build:win
 
       - name: release

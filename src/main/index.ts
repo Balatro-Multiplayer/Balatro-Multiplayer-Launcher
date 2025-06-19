@@ -6,11 +6,6 @@ import { modInstallationService } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
-import { updateElectronApp } from 'update-electron-app'
-import logger from 'electron-log'
-
-//auto-updater
-updateElectronApp({ logger })
 
 // Initialize logger
 loggerService.info('Application starting...')
