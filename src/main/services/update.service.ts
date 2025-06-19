@@ -75,7 +75,10 @@ class UpdateService {
 
     autoUpdater.on('update-available', (info) => {
       loggerService.info('Update available:', info)
-      this.sendStatusToWindow('update-available', { version: info.version })
+      this.sendStatusToWindow('update-available', {
+        version: info.version,
+        releaseNotes: info.releaseNotes
+      })
     })
 
     autoUpdater.on('update-not-available', (info) => {
@@ -91,7 +94,10 @@ class UpdateService {
 
     autoUpdater.on('update-downloaded', (info) => {
       loggerService.info('Update downloaded:', info)
-      this.sendStatusToWindow('update-downloaded', { version: info.version })
+      this.sendStatusToWindow('update-downloaded', {
+        version: info.version,
+        releaseNotes: info.releaseNotes
+      })
     })
 
     autoUpdater.on('error', (error) => {

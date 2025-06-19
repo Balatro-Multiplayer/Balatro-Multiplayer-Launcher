@@ -5,8 +5,8 @@ class ModInstallationService {
   getAvailableModVersions() {
     return window.api.getAvailableModVersions()
   }
-  loadModVersion(id: number) {
-    return window.api.loadModVersion(id)
+  loadModVersion(id: number, forceDownload: boolean = false) {
+    return window.api.loadModVersion(id, forceDownload)
   }
   getSmodsVersion() {
     return window.api.getSmodsVersion()

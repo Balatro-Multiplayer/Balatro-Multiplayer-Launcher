@@ -1,11 +1,15 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
+import * as path from 'path'
+import * as os from 'os'
+import fs from 'fs-extra'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { modInstallationService } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
+import { settingsService } from './services/settings.service'
 // Initialize logger
 loggerService.info('Application starting...')
 function createWindow(): void {
@@ -95,6 +99,34 @@ app.whenReady().then(() => {
 
   // App info IPC handlers
   ipcMain.handle('app:get-version', () => app.getVersion())
+
+  // Settings IPC handlers
+  ipcMain.handle('settings:get-game-directory', () => settingsService.getGameDirectory())
+  ipcMain.handle('settings:set-game-directory', (_, directory) => {
+    settingsService.setGameDirectory(directory)
+    return true
+  })
+  ipcMain.handle('settings:get-default-game-directory', async () => {
+    const platform = process.platform
+    const defaultPath = {
+      win32: path.join(os.homedir(), 'AppData', 'Roaming', 'Steam', 'steamapps', 'common', 'Balatro'),
+      darwin: path.join(
+        os.homedir(),
+        'Library',
+        'Application Support',
+        'Steam',
+        'steamapps',
+        'common',
+        'Balatro'
+      ),
+      linux: path.join(os.homedir(), '.local', 'share', 'Steam', 'steamapps', 'common', 'Balatro')
+    }[platform]
+
+    if (defaultPath && await fs.pathExists(defaultPath)) {
+      return defaultPath
+    }
+    return null
+  })
 
   createWindow()
 

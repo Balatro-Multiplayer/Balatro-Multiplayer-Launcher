@@ -9,11 +9,9 @@ import { MODS_DIR } from '../constants'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import { loggerService } from './logger.service'
+import { settingsService } from './settings.service'
 
 const execAsync = promisify(exec)
-const isMac = os.platform() === 'darwin'
-const isWindows = os.platform() === 'win32'
-const isLinux = os.platform() === 'linux'
 
 // Define VERSION_STORAGE_DIR for all platforms
 const VERSION_STORAGE_DIR = {
@@ -55,7 +53,13 @@ const STEAM_GAME_DIR = {
 
 // Function to determine the game directory
 async function getGameDirectory() {
-  // First, check if the default Steam path exists
+  // First, check if a custom directory is set in settings
+  const customDir = settingsService.getGameDirectory()
+  if (customDir) {
+    return customDir
+  }
+
+  // If no custom directory is set, check if the default Steam path exists
   const defaultPath = STEAM_GAME_DIR[platform]
   if (defaultPath && (await fs.pathExists(defaultPath))) {
     return defaultPath
@@ -590,10 +594,11 @@ async function installLovely(version: string = 'latest') {
 
 async function loadModVersion(
   id: number,
-  progressCallback?: (progress: { status: string; progress?: number }) => void
+  progressCallback?: (progress: { status: string; progress?: number }) => void,
+  forceDownload: boolean = false
 ) {
-  progressCallback({ status: 'Starting installation', progress: 0 })
-  loggerService.info('loadModVersion', id)
+  progressCallback?.({ status: 'Starting installation', progress: 0 })
+  loggerService.info('loadModVersion', id, forceDownload ? '(forced download)' : '')
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -620,11 +625,11 @@ async function loadModVersion(
   const tempDir = path.join(os.tmpdir(), 'balatro-multiplayer-temp')
   await fs.ensureDir(tempDir)
 
-  // Check if the version is already in the version storage directory
+  // Check if the version is already in the version storage directory and we're not forcing a download
   let zipFilePath = ''
 
   // Check if version storage directory exists and has content
-  if (await fs.pathExists(versionStorageDir)) {
+  if (!forceDownload && (await fs.pathExists(versionStorageDir))) {
     // Look for the specific version directory without timestamp
     const versionDir = path.join(versionStorageDir, `multiplayer-${versionToInstall.version}`)
 

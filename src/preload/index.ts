@@ -32,7 +32,11 @@ const api = {
     return () => {
       ipcRenderer.removeAllListeners('update-service:status')
     }
-  }
+  },
+  // Settings APIs
+  getGameDirectory: () => ipcRenderer.invoke('settings:get-game-directory'),
+  setGameDirectory: (directory: string) => ipcRenderer.invoke('settings:set-game-directory', directory),
+  getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

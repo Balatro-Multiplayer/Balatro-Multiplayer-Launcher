@@ -40,7 +40,7 @@ interface UpdateStatus {
   [key: string]: any
 }
 
-interface API{
+interface API {
   getInstalledModVersions: () => Promise<Array<string>>
   getAvailableModVersions: () => Promise<Array<ModVersion>>
   loadModVersion: (id:number) => Promise<void>
@@ -56,6 +56,9 @@ interface API{
   getAppVersion: () => Promise<string>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
+  getGameDirectory: () => Promise<string | null>
+  setGameDirectory: (directory: string) => Promise<boolean>
+  getDefaultGameDirectory: () => Promise<string | null>
 }
 
 declare global {
