@@ -81,8 +81,8 @@ jobs:
           # increase timeout for codesign
           defaults write com.apple.security.codesign timeout 300
 
-          # run build with extra logging
-          DEBUG=electron-builder bun run build:mac
+          # run build
+            bun run build:mac
 
       - name: Clean up keychain
         if: matrix.os == 'macos-latest'
