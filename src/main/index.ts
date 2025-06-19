@@ -2,10 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import {
-  checkDirectoryForMultiplayerInstallation,
-  modInstallationService
-} from './services/mod-installation.service'
+import { modInstallationService } from './services/mod-installation.service'
 import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
