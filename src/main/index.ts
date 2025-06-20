@@ -109,7 +109,15 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:get-default-game-directory', async () => {
     const platform = process.platform
     const defaultPath = {
-      win32: path.join(os.homedir(), 'AppData', 'Roaming', 'Steam', 'steamapps', 'common', 'Balatro'),
+      win32: path.join(
+        os.homedir(),
+        'AppData',
+        'Roaming',
+        'Steam',
+        'steamapps',
+        'common',
+        'Balatro'
+      ),
       darwin: path.join(
         os.homedir(),
         'Library',
@@ -122,7 +130,7 @@ app.whenReady().then(() => {
       linux: path.join(os.homedir(), '.local', 'share', 'Steam', 'steamapps', 'common', 'Balatro')
     }[platform]
 
-    if (defaultPath && await fs.pathExists(defaultPath)) {
+    if (defaultPath && (await fs.pathExists(defaultPath))) {
       return defaultPath
     }
     return null
