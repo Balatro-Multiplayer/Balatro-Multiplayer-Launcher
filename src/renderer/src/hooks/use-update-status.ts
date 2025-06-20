@@ -32,21 +32,7 @@ export function useUpdateStatus() {
     const removeListener = window.api.onUpdateStatus((status: UpdateStatus) => {
       // Update the query data
       queryClient.setQueryData(updateStatusQueryOptions.queryKey, status)
-
-      // Show toast notifications for different update statuses
-      switch (status.status) {
-        case 'update-available':
-          toast.info(`Update available: v${status.version}`)
-          break
-        case 'update-downloaded':
-          toast.success(`Update downloaded: v${status.version}. Restart to install.`)
-          break
-        case 'error':
-          toast.error(`Update error: ${status.error}`)
-          break
-      }
     })
-
     // Check for updates when the hook is first used
     window.api.checkForUpdates().catch((error) => {
       console.error('Error checking for updates:', error)
