@@ -39,6 +39,8 @@ linux:
   category: Utility
 appImage:
   artifactName: ${name}.${ext}
+deb:
+  artifactName: ${name}.${ext}
 npmRebuild: false
 publish:
   provider: github
