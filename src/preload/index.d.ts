@@ -58,6 +58,7 @@ interface API {
   logger: Logger
   getGameDirectory: () => Promise<string | null>
   setGameDirectory: (directory: string) => Promise<boolean>
+  openDirectoryDialog: () => Promise<string | null>
   getDefaultGameDirectory: () => Promise<string | null>
   isOnboardingCompleted: () => Promise<boolean>
   setOnboardingCompleted: (completed?: boolean) => Promise<void>

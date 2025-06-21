@@ -36,6 +36,7 @@ const api = {
   // Settings APIs
   getGameDirectory: () => ipcRenderer.invoke('settings:get-game-directory'),
   setGameDirectory: (directory: string) => ipcRenderer.invoke('settings:set-game-directory', directory),
+  openDirectoryDialog: () => ipcRenderer.invoke('settings:open-directory-dialog'),
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
   setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed)

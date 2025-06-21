@@ -51,6 +51,17 @@ export function OnboardingPage() {
     }
   }
 
+  const handleBrowse = async () => {
+    try {
+      const selectedDirectory = await window.api.openDirectoryDialog()
+      if (selectedDirectory) {
+        setCustomDirectory(selectedDirectory)
+      }
+    } catch (error) {
+      toast.error(`Failed to open directory dialog: ${error}`)
+    }
+  }
+
   const handleUseDefault = () => {
     if (defaultGameDirectory) {
       setCustomDirectory(defaultGameDirectory)
@@ -75,13 +86,23 @@ export function OnboardingPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="gameDirectory">Game Directory</Label>
-              <Input
-                id="gameDirectory"
-                value={customDirectory}
-                onChange={(e) => setCustomDirectory(e.target.value)}
-                placeholder={isLoadingGameDirectory ? 'Loading...' : 'Enter game directory path'}
-                className="w-full"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="gameDirectory"
+                  value={customDirectory}
+                  onChange={(e) => setCustomDirectory(e.target.value)}
+                  placeholder={isLoadingGameDirectory ? 'Loading...' : 'Enter game directory path'}
+                  className="flex-1"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  onClick={handleBrowse}
+                  variant="outline"
+                >
+                  Browse
+                </Button>
+              </div>
             </div>
 
             {defaultGameDirectory && (

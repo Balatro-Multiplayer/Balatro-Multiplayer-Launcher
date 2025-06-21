@@ -53,6 +53,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
+  const handleBrowse = async () => {
+    try {
+      const selectedDirectory = await window.api.openDirectoryDialog()
+      if (selectedDirectory) {
+        setCustomDirectory(selectedDirectory)
+      }
+    } catch (error) {
+      toast.error(`Failed to open directory dialog: ${error}`)
+    }
+  }
+
   const handleUseDefault = () => {
     if (defaultGameDirectory) {
       setCustomDirectory(defaultGameDirectory)
@@ -75,13 +86,24 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               Game Directory
             </Label>
             <div className="col-span-3 space-y-2">
-              <Input
-                id="gameDirectory"
-                value={customDirectory}
-                onChange={(e) => setCustomDirectory(e.target.value)}
-                placeholder={isLoadingGameDirectory ? 'Loading...' : 'Enter game directory path'}
-                className="w-full"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="gameDirectory"
+                  value={customDirectory}
+                  onChange={(e) => setCustomDirectory(e.target.value)}
+                  placeholder={isLoadingGameDirectory ? 'Loading...' : 'Enter game directory path'}
+                  className="flex-1"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  onClick={handleBrowse}
+                  variant="outline"
+                  size="sm"
+                >
+                  Browse
+                </Button>
+              </div>
               {defaultGameDirectory && (
                 <Button variant="outline" size="sm" onClick={handleUseDefault} className="w-full">
                   Use Default Steam Path

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { join } from 'path'
 import * as path from 'path'
 import * as os from 'os'
@@ -105,6 +105,17 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:set-game-directory', (_, directory) => {
     settingsService.setGameDirectory(directory)
     return true
+  })
+  ipcMain.handle('settings:open-directory-dialog', async (event) => {
+    const mainWindow = BrowserWindow.fromWebContents(event.sender)
+    if (!mainWindow) return null
+
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+      title: 'Select Balatro Game Directory'
+    })
+
+    return canceled ? null : filePaths[0]
   })
   ipcMain.handle('settings:get-default-game-directory', async () => {
     const platform = process.platform
