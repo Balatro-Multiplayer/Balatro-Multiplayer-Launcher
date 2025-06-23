@@ -39,7 +39,10 @@ const api = {
   openDirectoryDialog: () => ipcRenderer.invoke('settings:open-directory-dialog'),
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
-  setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed)
+  setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
+
+  // Game launch API
+  launchGame: () => ipcRenderer.invoke('game:launch')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
