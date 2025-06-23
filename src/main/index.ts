@@ -10,6 +10,7 @@ import { multiplayerService } from './services/multiplayer.service'
 import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
 import { settingsService } from './services/settings.service'
+import { gameLaunchService } from './services/game-launch.service'
 // Initialize logger
 loggerService.info('Application starting...')
 function createWindow(): void {
@@ -152,6 +153,17 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:set-onboarding-completed', (_, completed = true) => {
     settingsService.setOnboardingCompleted(completed)
     return true
+  })
+
+  // Game launch IPC handler
+  ipcMain.handle('game:launch', async () => {
+    try {
+      await gameLaunchService.launchGame()
+      return { success: true }
+    } catch (error) {
+      loggerService.error('Failed to launch game:', error)
+      return { success: false, error: error.message }
+    }
   })
 
   createWindow()

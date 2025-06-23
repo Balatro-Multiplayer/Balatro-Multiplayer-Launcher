@@ -7,7 +7,7 @@ import {
   onboardingCompletedQueryOptions,
   smodsVersionQueryOptions
 } from '@renderer/queries'
-import { CheckCircle2, ChevronRight, Info, RefreshCcw } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Info, RefreshCcw, Play } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { useCallback, useMemo, useState } from 'react'
@@ -97,6 +97,29 @@ function App(): React.JSX.Element {
       toast.dismiss(toastId)
       toast.error('Failed to select version')
       console.error('Version selection error:', error)
+    }
+  })
+
+  const launchGame = useMutation({
+    mutationFn: () => modInstallationService.launchGame(),
+    onMutate: () => {
+      // Show loading toast when mutation starts
+      return toast.loading('Launching game...')
+    },
+    onSuccess: (result, _, toastId) => {
+      // Show success toast and dismiss loading toast
+      toast.dismiss(toastId)
+      if (result?.success) {
+        toast.success('Game launched successfully')
+      } else {
+        toast.error(`Failed to launch game: ${result?.error || 'Unknown error'}`)
+      }
+    },
+    onError: (error, _, toastId) => {
+      // Show error toast and dismiss loading toast
+      toast.dismiss(toastId)
+      toast.error('Failed to launch game')
+      console.error('Game launch error:', error)
     }
   })
 
@@ -329,6 +352,16 @@ function App(): React.JSX.Element {
                 </div>
               </div>
             </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={() => launchGame.mutate()}
+                disabled={!installedVersions.data?.[0] || launchGame.isPending}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Launch Game
+              </Button>
+            </CardFooter>
           </Card>
 
           {/* Available Versions Section */}

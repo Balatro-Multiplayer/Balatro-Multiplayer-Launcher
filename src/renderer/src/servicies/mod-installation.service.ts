@@ -17,6 +17,9 @@ class ModInstallationService {
   checkCompatibility() {
     return window.api.checkCompatibility()
   }
+  launchGame() {
+    return window.api.launchGame()
+  }
 }
 
 export const modInstallationService = new ModInstallationService()
