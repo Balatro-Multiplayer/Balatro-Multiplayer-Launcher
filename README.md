@@ -24,11 +24,13 @@ $ npm run dev
 
 ```bash
 # For windows
-$ npm run build:win
+$ npm run build:win:local
 
 # For macOS
-$ npm run build:mac
+$ npm run build:mac:local
 
 # For Linux
-$ npm run build:linux
+$ npm run build:linux:local
 ```
+
+Remove :local to publish to Github.
