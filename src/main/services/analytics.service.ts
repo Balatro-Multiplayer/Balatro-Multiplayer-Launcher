@@ -1,14 +1,10 @@
 import { app } from 'electron'
-import https from 'https'
 import { settingsService } from './settings.service'
 import { loggerService } from './logger.service'
 
-// Extend the Settings interface in settings.service.ts to include installationTracked
-// This will be done in a separate edit
-
 const PLAUSIBLE_API_HOST = 'plausible.balatromp.com'
 const PLAUSIBLE_API_URL = '/api/event'
-const PLAUSIBLE_DOMAIN = 'balatromp.com' // Replace with your actual domain configured in Plausible
+const PLAUSIBLE_DOMAIN = 'balatromp.com'
 type PlausibleEvent = {
   domain: string
   name: string
