@@ -10,11 +10,14 @@ const SETTINGS_FILE = path.join(app.getPath('userData'), 'settings.json')
 interface Settings {
   gameDirectory?: string
   onboardingCompleted?: boolean
+  installationTracked?: boolean
+  analyticsEnabled?: boolean
 }
 
 // Default settings
 const DEFAULT_SETTINGS: Settings = {
-  onboardingCompleted: false
+  onboardingCompleted: false,
+  analyticsEnabled: true
 }
 
 class SettingsService {
@@ -89,6 +92,21 @@ class SettingsService {
   // Mark onboarding as completed
   setOnboardingCompleted(completed: boolean = true): void {
     this.setSetting('onboardingCompleted', completed)
+  }
+
+  // Check if analytics is enabled
+  isAnalyticsEnabled(): boolean {
+    return this.settings.analyticsEnabled !== false
+  }
+
+  // Set analytics enabled/disabled
+  setAnalyticsEnabled(enabled: boolean): void {
+    this.setSetting('analyticsEnabled', enabled)
+  }
+
+  // Get all settings (for dev mode)
+  getAllSettings(): Settings {
+    return { ...this.settings }
   }
 }
 

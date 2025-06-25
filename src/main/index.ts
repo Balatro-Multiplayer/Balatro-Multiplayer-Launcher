@@ -11,6 +11,7 @@ import { loggerService } from './services/logger.service'
 import { updateService } from './services/update.service'
 import { settingsService } from './services/settings.service'
 import { gameLaunchService } from './services/game-launch.service'
+import { analyticsService } from './services/analytics.service'
 // Initialize logger
 loggerService.info('Application starting...')
 function createWindow(): void {
@@ -54,6 +55,11 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.balatromp.launcher')
+
+  // Track app installation with Plausible Analytics
+  analyticsService.trackInstallation().catch(error => {
+    loggerService.error('Failed to track installation:', error)
+  })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -100,6 +106,7 @@ app.whenReady().then(() => {
 
   // App info IPC handlers
   ipcMain.handle('app:get-version', () => app.getVersion())
+  ipcMain.handle('app:is-dev', () => is.dev)
 
   // Settings IPC handlers
   ipcMain.handle('settings:get-game-directory', () => settingsService.getGameDirectory())
@@ -153,6 +160,30 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:set-onboarding-completed', (_, completed = true) => {
     settingsService.setOnboardingCompleted(completed)
     return true
+  })
+
+  // Analytics IPC handlers
+  ipcMain.handle('settings:is-analytics-enabled', () => settingsService.isAnalyticsEnabled())
+  ipcMain.handle('settings:set-analytics-enabled', (_, enabled = true) => {
+    settingsService.setAnalyticsEnabled(enabled)
+    return true
+  })
+
+  // Dev mode settings IPC handlers
+  ipcMain.handle('settings:get-all-settings', () => {
+    // Only available in development mode
+    if (is.dev) {
+      return settingsService.getAllSettings()
+    }
+    return null
+  })
+  ipcMain.handle('settings:set-setting', (_, key, value) => {
+    // Only available in development mode
+    if (is.dev) {
+      settingsService.setSetting(key, value)
+      return true
+    }
+    return false
   })
 
   // Game launch IPC handler

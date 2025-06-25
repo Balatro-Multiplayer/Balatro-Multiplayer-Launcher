@@ -23,6 +23,16 @@ class SettingsService {
   async setOnboardingCompleted(completed: boolean = true): Promise<void> {
     return window.api.setOnboardingCompleted(completed)
   }
+
+  // Dev mode: Get all settings
+  async getAllSettings(): Promise<Record<string, any> | null> {
+    return window.api.getAllSettings()
+  }
+
+  // Dev mode: Set a specific setting
+  async setSetting(key: string, value: any): Promise<boolean> {
+    return window.api.setSetting(key, value)
+  }
 }
 
 export const settingsService = new SettingsService()

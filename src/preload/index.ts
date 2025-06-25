@@ -24,6 +24,7 @@ const api = {
   downloadUpdate: () => ipcRenderer.invoke('update-service:download-update'),
   installUpdate: () => ipcRenderer.invoke('update-service:install-update'),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  isDev: () => ipcRenderer.invoke('app:is-dev'),
   onUpdateStatus: (callback: (status: { status: string; [key: string]: any }) => void) => {
     // Add the event listener
     ipcRenderer.on('update-service:status', (_event, status) => callback(status))
@@ -40,6 +41,14 @@ const api = {
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
   setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
+
+  // Analytics APIs
+  isAnalyticsEnabled: () => ipcRenderer.invoke('settings:is-analytics-enabled'),
+  setAnalyticsEnabled: (enabled = true) => ipcRenderer.invoke('settings:set-analytics-enabled', enabled),
+
+  // Dev mode settings APIs
+  getAllSettings: () => ipcRenderer.invoke('settings:get-all-settings'),
+  setSetting: (key: string, value: any) => ipcRenderer.invoke('settings:set-setting', key, value),
 
   // Game launch API
   launchGame: () => ipcRenderer.invoke('game:launch')

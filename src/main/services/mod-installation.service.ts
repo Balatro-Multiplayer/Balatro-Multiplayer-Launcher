@@ -814,7 +814,6 @@ async function checkModCompatibility() {
 
   // Get available versions from the API endpoint
   const availableVersions = await multiplayerService.getAvailableModVersions()
-  console.log(availableVersions)
   // Find the installed version in the available versions
   for (const installedVersion of installedVersions) {
     const matchingVersion = availableVersions.find((v) => v.version === installedVersion)

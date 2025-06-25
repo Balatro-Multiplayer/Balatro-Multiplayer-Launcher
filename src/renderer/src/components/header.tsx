@@ -1,17 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { appVersionQueryOptions } from '@renderer/queries'
 import { useUpdateStatus } from '@renderer/hooks/use-update-status'
 import { Button } from './ui/button'
-import { RotateCw, Settings } from 'lucide-react'
+import { RotateCw, Settings, Bug } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import { ThemeToggle } from '@renderer/components/ui/theme-toggle'
 import { SettingsDialog } from './settings-dialog'
+import { DevSettingsDialog } from './dev-settings-dialog'
 
 export function Header() {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [devSettingsOpen, setDevSettingsOpen] = useState(false)
+  const [isDev, setIsDev] = useState(false)
   const { data: appVersion } = useQuery(appVersionQueryOptions)
   const { data: updateStatus, installUpdate } = useUpdateStatus()
+
+  useEffect(() => {
+    // Check if we're in development mode
+    window.api.isDev().then(setIsDev).catch(console.error)
+  }, [])
 
   // Function to format changelog if available
   const formatChangelog = () => {
@@ -50,6 +58,18 @@ export function Header() {
             <Settings className="h-4 w-4" />
             <span>Settings</span>
           </Button>
+          {isDev && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDevSettingsOpen(true)}
+              className="flex items-center gap-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+              title="Dev Settings"
+            >
+              <Bug className="h-4 w-4" />
+              <span>Dev Settings</span>
+            </Button>
+          )}
           <ThemeToggle />
           {updateStatus?.status === 'update-downloaded' ? (
             <TooltipProvider>
@@ -87,6 +107,9 @@ export function Header() {
 
       {/* Settings Dialog */}
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      {/* Dev Settings Dialog - only rendered in development mode */}
+      {isDev && <DevSettingsDialog open={devSettingsOpen} onOpenChange={setDevSettingsOpen} />}
     </header>
   )
 }

@@ -23,8 +23,6 @@ export async function checkDirectoryForMultiplayerInstallation(): Promise<Array<
 
   const versions = await determineMultiplayerInsalledVersion()
 
-  console.log({ dir, modsDirExists, versions })
-  console.log('checkDirectoryForMultiplayerInstallation')
   return versions
 }
 
