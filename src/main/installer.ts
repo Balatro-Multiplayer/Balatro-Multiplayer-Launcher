@@ -40,7 +40,7 @@ async function determineMultiplayerInsalledVersion() {
     const jsonFile = files.find((e) => e.endsWith('.json'))
     if (jsonFile) {
       const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
-      if (json.id === 'Multiplayer') {
+      if (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') {
         configs.push(json)
       }
     }

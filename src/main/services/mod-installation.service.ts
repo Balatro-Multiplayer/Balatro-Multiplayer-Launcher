@@ -106,7 +106,7 @@ async function determineMultiplayerInstalledVersion() {
     const jsonFile = files.find((e) => e.endsWith('.json'))
     if (jsonFile) {
       const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
-      if (json.id === 'Multiplayer') {
+      if (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') {
         configs.push(json)
       }
     }
@@ -134,7 +134,10 @@ async function storeInstalledVersions() {
         if (jsonFile) {
           const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
 
-          if (json.id === 'Multiplayer' && json.version === version) {
+          if (
+            (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') &&
+            json.version === version
+          ) {
             // Create a version-specific storage directory without timestamp
             const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
 
@@ -642,7 +645,10 @@ async function loadModVersion(
 
       if (jsonFile) {
         const json = await fs.readJSON(path.join(versionDir, jsonFile))
-        if (json.id === 'Multiplayer' && json.version === versionToInstall.version) {
+        if (
+          (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') &&
+          json.version === versionToInstall.version
+        ) {
           // Store any currently installed versions
           await storeInstalledVersions()
 
@@ -883,7 +889,7 @@ async function keepSelectedVersion(versionToKeep: string) {
     if (jsonFile) {
       const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
 
-      if (json.id === 'Multiplayer') {
+      if (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') {
         const version = json.version
 
         // If this is not the version to keep, move it to storage

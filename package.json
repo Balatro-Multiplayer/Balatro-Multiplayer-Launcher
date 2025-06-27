@@ -1,7 +1,7 @@
 {
   "name": "balatro-multiplayer-launcher",
   "productName": "Balatro Multiplayer Launcher",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Official launcher for Balatro Multiplayer",
   "main": "./out/main/index.js",
   "repository": {
