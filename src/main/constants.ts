@@ -6,9 +6,8 @@ export const MODS_DIR = {
   darwin: path.join(os.homedir(), 'Library', 'Application Support', 'Balatro', 'Mods'),
   linux: path.join(
     os.homedir(),
-    '.local',
-    'share',
-    'Steam',
+    '.steam',
+    'steam',
     'steamapps',
     'compatdata',
     '2379780',

@@ -31,7 +31,7 @@ const VERSION_STORAGE_DIR = {
     'AppData',
     'Roaming',
     'Balatro',
-    'Mods'
+    'ModVersions'
   )
 }
 
