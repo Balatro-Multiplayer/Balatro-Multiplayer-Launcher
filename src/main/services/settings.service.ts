@@ -2,6 +2,7 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import { app } from 'electron'
 import { loggerService } from './logger.service'
+import os from 'os'
 
 // Define the settings file path in the app's user data directory
 const SETTINGS_FILE = path.join(app.getPath('userData'), 'settings.json')
@@ -12,12 +13,29 @@ interface Settings {
   onboardingCompleted?: boolean
   installationTracked?: boolean
   analyticsEnabled?: boolean
+  linuxModsDirectory?: string
 }
 
 // Default settings
 const DEFAULT_SETTINGS: Settings = {
   onboardingCompleted: false,
-  analyticsEnabled: true
+  analyticsEnabled: true,
+  linuxModsDirectory: path.join(
+    os.homedir(),
+    '.steam',
+    'steam',
+    'steamapps',
+    'compatdata',
+    '2379780',
+    'pfx',
+    'drive_c',
+    'users',
+    'steamuser',
+    'AppData',
+    'Roaming',
+    'Balatro',
+    'Mods'
+  )
 }
 
 class SettingsService {
@@ -102,6 +120,57 @@ class SettingsService {
   // Set analytics enabled/disabled
   setAnalyticsEnabled(enabled: boolean): void {
     this.setSetting('analyticsEnabled', enabled)
+  }
+
+  // Get the Linux mods directory, with fallback to default
+  getLinuxModsDirectory(): string {
+    const customDir = this.settings.linuxModsDirectory
+    if (customDir) {
+      return customDir
+    }
+    
+    // Return default Linux mods directory path
+    return path.join(
+      os.homedir(),
+      '.steam',
+      'steam',
+      'steamapps',
+      'compatdata',
+      '2379780',
+      'pfx',
+      'drive_c',
+      'users',
+      'steamuser',
+      'AppData',
+      'Roaming',
+      'Balatro',
+      'Mods'
+    )
+  }
+
+  // Set the Linux mods directory
+  setLinuxModsDirectory(directory: string): void {
+    this.setSetting('linuxModsDirectory', directory)
+  }
+
+  // Get the default Linux mods directory
+  getDefaultLinuxModsDirectory(): string {
+    return path.join(
+      os.homedir(),
+      '.steam',
+      'steam',
+      'steamapps',
+      'compatdata',
+      '2379780',
+      'pfx',
+      'drive_c',
+      'users',
+      'steamuser',
+      'AppData',
+      'Roaming',
+      'Balatro',
+      'Mods'
+    )
   }
 
   // Get all settings (for dev mode)

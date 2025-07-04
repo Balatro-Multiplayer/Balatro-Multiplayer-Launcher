@@ -54,6 +54,10 @@ interface API {
   downloadUpdate: () => Promise<void>
   installUpdate: () => void
   getAppVersion: () => Promise<string>
+  getPlatform: () => Promise<string>
+  getLinuxModsDirectory: () => Promise<string>
+  setLinuxModsDirectory: (directory: string) => Promise<boolean>
+  getDefaultLinuxModsDirectory: () => Promise<string>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
   getGameDirectory: () => Promise<string | null>
@@ -62,6 +66,14 @@ interface API {
   getDefaultGameDirectory: () => Promise<string | null>
   isOnboardingCompleted: () => Promise<boolean>
   setOnboardingCompleted: (completed?: boolean) => Promise<void>
+  // Analytics APIs
+  isAnalyticsEnabled: () => Promise<boolean>
+  setAnalyticsEnabled: (enabled?: boolean) => Promise<boolean>
+  // Dev mode APIs
+  getAllSettings: () => Promise<Record<string, unknown> | null>
+  setSetting: (key: string, value: unknown) => Promise<boolean>
+  // Game launch API
+  launchGame: () => Promise<{ success: boolean; error?: string }>
 }
 
 declare global {

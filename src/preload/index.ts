@@ -25,6 +25,7 @@ const api = {
   installUpdate: () => ipcRenderer.invoke('update-service:install-update'),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
   isDev: () => ipcRenderer.invoke('app:is-dev'),
+  getPlatform: () => ipcRenderer.invoke('app:get-platform'),
   onUpdateStatus: (callback: (status: { status: string; [key: string]: any }) => void) => {
     // Add the event listener
     ipcRenderer.on('update-service:status', (_event, status) => callback(status))
@@ -41,6 +42,9 @@ const api = {
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
   setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
+  getLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-linux-mods-directory'),
+  setLinuxModsDirectory: (directory: string) => ipcRenderer.invoke('settings:set-linux-mods-directory', directory),
+  getDefaultLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-default-linux-mods-directory'),
 
   // Analytics APIs
   isAnalyticsEnabled: () => ipcRenderer.invoke('settings:is-analytics-enabled'),

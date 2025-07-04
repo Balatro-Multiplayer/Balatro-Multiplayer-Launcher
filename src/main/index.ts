@@ -107,6 +107,7 @@ app.whenReady().then(() => {
   // App info IPC handlers
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:is-dev', () => is.dev)
+  ipcMain.handle('app:get-platform', (): string => process.platform)
 
   // Settings IPC handlers
   ipcMain.handle('settings:get-game-directory', () => settingsService.getGameDirectory())
@@ -185,6 +186,14 @@ app.whenReady().then(() => {
     }
     return false
   })
+
+  // Linux mods directory IPC handlers
+  ipcMain.handle('settings:get-linux-mods-directory', () => settingsService.getLinuxModsDirectory())
+  ipcMain.handle('settings:set-linux-mods-directory', (_, directory) => {
+    settingsService.setLinuxModsDirectory(directory)
+    return true
+  })
+  ipcMain.handle('settings:get-default-linux-mods-directory', () => settingsService.getDefaultLinuxModsDirectory())
 
   // Game launch IPC handler
   ipcMain.handle('game:launch', async () => {
