@@ -107,6 +107,7 @@ app.whenReady().then(() => {
   // App info IPC handlers
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:is-dev', () => is.dev)
+  ipcMain.handle('app:get-platform', (): string => process.platform)
 
   // Settings IPC handlers
   ipcMain.handle('settings:get-game-directory', () => settingsService.getGameDirectory())

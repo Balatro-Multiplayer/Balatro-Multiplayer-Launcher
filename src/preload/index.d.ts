@@ -54,6 +54,7 @@ interface API {
   downloadUpdate: () => Promise<void>
   installUpdate: () => void
   getAppVersion: () => Promise<string>
+  getPlatform: () => Promise<string>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
   getGameDirectory: () => Promise<string | null>

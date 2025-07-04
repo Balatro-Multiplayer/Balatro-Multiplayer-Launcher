@@ -25,6 +25,7 @@ const api = {
   installUpdate: () => ipcRenderer.invoke('update-service:install-update'),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
   isDev: () => ipcRenderer.invoke('app:is-dev'),
+  getPlatform: () => ipcRenderer.invoke('app:get-platform'),
   onUpdateStatus: (callback: (status: { status: string; [key: string]: any }) => void) => {
     // Add the event listener
     ipcRenderer.on('update-service:status', (_event, status) => callback(status))

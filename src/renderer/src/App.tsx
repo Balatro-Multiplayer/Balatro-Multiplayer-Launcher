@@ -5,9 +5,10 @@ import {
   installedModVersionsQueryOptions,
   lovelyInstalledQueryOptions,
   onboardingCompletedQueryOptions,
-  smodsVersionQueryOptions
+  smodsVersionQueryOptions,
+  platformQueryOptions
 } from '@renderer/queries'
-import { CheckCircle2, ChevronRight, Info, RefreshCcw, Play } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Info, RefreshCcw, Play, Copy } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { useCallback, useMemo, useState } from 'react'
@@ -39,6 +40,7 @@ function App(): React.JSX.Element {
   const smodsVersion = useQuery(smodsVersionQueryOptions)
   const lovelyInstalled = useQuery(lovelyInstalledQueryOptions)
   const compatibility = useQuery(compatibilityQueryOptions)
+  const platform = useQuery(platformQueryOptions)
   const { data: onboardingCompleted, isLoading: isLoadingOnboarding } = useQuery(
     onboardingCompletedQueryOptions
   )
@@ -352,7 +354,51 @@ function App(): React.JSX.Element {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col space-y-3">
+              
+              {/* Steam Launch Options Note - Only show on Linux */}
+              {platform.data === 'linux' && (
+                <div className="w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+                        <strong>Note:</strong> If you are using Proton or Wine as a compatibility layer, you must put the following in your Steam launch options for Balatro:
+                      </p>
+                      <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/40 rounded px-2 py-1 mb-2">
+                        <code className="text-xs font-mono text-blue-900 dark:text-blue-100 flex-1">
+                          WINEDLLOVERRIDES=&quot;version=n,b&quot; %command%
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                          onClick={(): void => {
+                            navigator.clipboard.writeText('WINEDLLOVERRIDES="version=n,b" %command%')
+                            toast.success('Launch options copied to clipboard!')
+                          }}
+                          title="Copy launch options"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Don&apos;t know how to set launch options?{' '}
+                        <button
+                          className="underline hover:no-underline font-medium"
+                          onClick={(): void => {
+                            window.open('https://help.steampowered.com/en/faqs/view/7D01-D2DD-D75E-2955', '_blank')
+                          }}
+                        >
+                          Click here for Steam&apos;s guide
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Launch Game Button */}
               <Button
                 className="w-full"
                 onClick={() => launchGame.mutate()}

@@ -19,9 +19,8 @@ const VERSION_STORAGE_DIR = {
   darwin: path.join(os.homedir(), 'Library', 'Application Support', 'Balatro', 'ModVersions'),
   linux: path.join(
     os.homedir(),
-    '.local',
-    'share',
-    'Steam',
+    '.steam',
+    'steam',
     'steamapps',
     'compatdata',
     '2379780',
@@ -32,7 +31,7 @@ const VERSION_STORAGE_DIR = {
     'AppData',
     'Roaming',
     'Balatro',
-    'ModVersions'
+    'Mods'
   )
 }
 

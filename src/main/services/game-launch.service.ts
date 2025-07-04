@@ -1,8 +1,35 @@
-import { spawn } from 'node:child_process'
+import { spawn, exec } from 'node:child_process'
 import * as path from 'node:path'
 import * as fs from 'fs-extra'
 import { loggerService } from './logger.service'
 import { modInstallationService } from './mod-installation.service'
+import { promisify } from 'node:util'
+
+const execAsync = promisify(exec)
+
+/**
+ * Checks if Steam is currently running
+ */
+async function isSteamRunning(): Promise<boolean> {
+  try {
+    await execAsync('pgrep -x steam')
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Checks if we can use Steam protocol (xdg-open available)
+ */
+async function canUseSteamProtocol(): Promise<boolean> {
+  try {
+    await execAsync('which xdg-open')
+    return true
+  } catch {
+    return false
+  }
+}
 
 /**
  * Launches the Balatro game
@@ -86,6 +113,43 @@ async function launchGame(): Promise<void> {
     }
 
     loggerService.info(`Launched game from ${exePath}`)
+  } else if (process.platform === 'linux') {
+    // Linux code - Launch via Steam with Proton
+    const BALATRO_STEAM_APP_ID = '2379780'
+    
+    try {
+      // First, try to detect if Steam is running
+      const steamRunning = await isSteamRunning()
+      if (!steamRunning) {
+        loggerService.info('Steam is not running, attempting to start Steam...')
+        // Try to start Steam
+        spawn('steam', [], { detached: true, stdio: 'ignore' })
+        // Wait a bit for Steam to start
+        await new Promise(resolve => setTimeout(resolve, 3000))
+      }
+
+      // Check if we can launch via Steam protocol
+      const steamProtocolAvailable = await canUseSteamProtocol()
+      
+      if (!steamProtocolAvailable) {
+        throw new Error('Steam protocol not available')
+      }
+      
+      // Use steam:// protocol
+      const steamUrl = `steam://rungameid/${BALATRO_STEAM_APP_ID}`
+      loggerService.info(`Launching Balatro via Steam protocol: ${steamUrl}`)
+      loggerService.info('Note: Using Steam launch options configured in Steam client')
+      
+      spawn('xdg-open', [steamUrl]).on('error', (err) => {
+        loggerService.error('Failed to launch via Steam protocol:', err)
+        throw new Error(`Failed to launch via Steam protocol: ${err.message}`)
+      })
+      
+      loggerService.info('Successfully launched Balatro on Linux')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      throw new Error(`Failed to launch Balatro on Linux: ${errorMessage}`)
+    }
   } else {
     throw new Error(`Unsupported platform: ${process.platform}`)
   }

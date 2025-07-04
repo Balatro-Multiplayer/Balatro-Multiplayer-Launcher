@@ -32,6 +32,11 @@ export const appVersionQueryOptions = queryOptions({
   queryKey: ['app-version']
 })
 
+export const platformQueryOptions = queryOptions({
+  queryFn: () => window.api.getPlatform(),
+  queryKey: ['platform']
+})
+
 export const updateStatusQueryOptions = queryOptions({
   queryFn: async () => {
     // This is a placeholder function that will be overridden by the useUpdateStatus hook
