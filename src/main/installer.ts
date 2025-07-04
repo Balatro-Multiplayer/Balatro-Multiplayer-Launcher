@@ -1,18 +1,13 @@
 import fs from 'fs-extra'
 import * as os from 'node:os'
 import path from 'node:path'
-import { MODS_DIR } from './constants'
-import { loggerService } from './services/logger.service'
-
-const isMac = os.platform() === 'darwin'
-const isWindows = os.platform() === 'win32'
-const isLinux = os.platform() === 'linux'
+import { getModsDir } from './constants'
 
 const platform = os.platform()
-const modsDir = MODS_DIR[platform] ?? null
+const modsDir = getModsDir(platform)
 
 export async function checkDirectoryForMultiplayerInstallation(): Promise<Array<string>> {
-  const dir = MODS_DIR[platform] ?? ''
+  const dir = getModsDir(platform)
   if (!dir) {
     throw new Error('Unsupported platform')
   }

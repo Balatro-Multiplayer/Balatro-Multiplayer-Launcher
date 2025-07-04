@@ -5,7 +5,7 @@ import { createWriteStream } from 'node:fs'
 import { pipeline } from 'node:stream/promises'
 import { multiplayerService } from './multiplayer.service'
 import extract from 'extract-zip'
-import { MODS_DIR } from '../constants'
+import { getModsDir } from '../constants'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import { loggerService } from './logger.service'
@@ -71,11 +71,11 @@ async function getGameDirectory() {
 
 const platform = os.platform()
 const arch = os.arch()
-const modsDir = MODS_DIR[platform] ?? null
+const modsDir = getModsDir(platform)
 const versionStorageDir = VERSION_STORAGE_DIR[platform] ?? null
 
 async function checkDirectoryForMultiplayerInstallation(): Promise<Array<string>> {
-  const dir = MODS_DIR[platform] ?? ''
+  const dir = getModsDir(platform)
   if (!dir) {
     throw new Error('Unsupported platform')
   }

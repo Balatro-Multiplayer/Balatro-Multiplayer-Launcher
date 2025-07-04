@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions, platformQueryOptions, linuxModsDirectoryQueryOptions, defaultLinuxModsDirectoryQueryOptions } from '@renderer/queries'
+import {
+  gameDirectoryQueryOptions,
+  defaultGameDirectoryQueryOptions,
+  platformQueryOptions,
+  linuxModsDirectoryQueryOptions,
+  defaultLinuxModsDirectoryQueryOptions
+} from '@renderer/queries'
 import { settingsService } from '@renderer/servicies/settings.service'
 import {
   Dialog,
@@ -147,12 +153,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   className="flex-1"
                   readOnly
                 />
-                <Button
-                  type="button"
-                  onClick={handleBrowse}
-                  variant="outline"
-                  size="sm"
-                >
+                <Button type="button" onClick={handleBrowse} variant="outline" size="sm">
                   Browse
                 </Button>
               </div>
@@ -177,7 +178,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <Alert variant="warning" className="w-full">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues. <strong>You must restart the application for changes to take effect.</strong>
+                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing.
+                    This directory is where mods are installed on Linux systems running Balatro
+                    through Proton/Wine. Changing this path incorrectly may cause mod installation
+                    issues.
                   </AlertDescription>
                 </Alert>
                 <div className="flex gap-2">
@@ -198,10 +202,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </Button>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleResetLinuxModsDirectory} 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetLinuxModsDirectory}
                     className="flex-1"
                   >
                     Reset to Default
