@@ -33,6 +33,16 @@ class SettingsService {
   async setSetting(key: string, value: any): Promise<boolean> {
     return window.api.setSetting(key, value)
   }
+
+  // Get the Linux mods directory
+  async getLinuxModsDirectory(): Promise<string> {
+    return window.api.getLinuxModsDirectory()
+  }
+
+  // Set the Linux mods directory
+  async setLinuxModsDirectory(directory: string): Promise<boolean> {
+    return window.api.setLinuxModsDirectory(directory)
+  }
 }
 
 export const settingsService = new SettingsService()

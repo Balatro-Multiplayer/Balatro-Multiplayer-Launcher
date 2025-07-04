@@ -42,6 +42,8 @@ const api = {
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
   setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
+  getLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-linux-mods-directory'),
+  setLinuxModsDirectory: (directory: string) => ipcRenderer.invoke('settings:set-linux-mods-directory', directory),
 
   // Analytics APIs
   isAnalyticsEnabled: () => ipcRenderer.invoke('settings:is-analytics-enabled'),

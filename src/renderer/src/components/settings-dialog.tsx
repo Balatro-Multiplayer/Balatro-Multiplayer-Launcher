@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions } from '@renderer/queries'
+import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions, platformQueryOptions, linuxModsDirectoryQueryOptions } from '@renderer/queries'
 import { settingsService } from '@renderer/servicies/settings.service'
 import {
   Dialog,
@@ -13,6 +13,8 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Alert, AlertDescription } from './ui/alert'
+import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface SettingsDialogProps {
@@ -25,8 +27,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { data: gameDirectory, isLoading: isLoadingGameDirectory } =
     useQuery(gameDirectoryQueryOptions)
   const { data: defaultGameDirectory } = useQuery(defaultGameDirectoryQueryOptions)
+  const { data: platform } = useQuery(platformQueryOptions)
+  const { data: linuxModsDirectory } = useQuery(linuxModsDirectoryQueryOptions)
 
   const [customDirectory, setCustomDirectory] = useState<string>('')
+  const [linuxModsDirectoryPath, setLinuxModsDirectoryPath] = useState<string>('')
 
   // Initialize the custom directory input when the dialog opens and data is loaded
   useEffect(() => {
@@ -34,6 +39,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       setCustomDirectory(gameDirectory)
     }
   }, [gameDirectory, open])
+
+  // Initialize the Linux mods directory input when the dialog opens and data is loaded
+  useEffect(() => {
+    if (linuxModsDirectory && open) {
+      setLinuxModsDirectoryPath(linuxModsDirectory)
+    }
+  }, [linuxModsDirectory, open])
 
   const updateGameDirectoryMutation = useMutation({
     mutationFn: (directory: string) => settingsService.setGameDirectory(directory),
@@ -47,13 +59,28 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   })
 
-  const handleSave = () => {
+  const updateLinuxModsDirectoryMutation = useMutation({
+    mutationFn: (directory: string) => settingsService.setLinuxModsDirectory(directory),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['linux-mods-directory'] })
+      toast.success('Linux mods directory updated successfully')
+      onOpenChange(false)
+    },
+    onError: (error) => {
+      toast.error(`Failed to update Linux mods directory: ${error}`)
+    }
+  })
+
+  const handleSave = (): void => {
     if (customDirectory) {
       updateGameDirectoryMutation.mutate(customDirectory)
     }
+    if (platform === 'linux' && linuxModsDirectoryPath) {
+      updateLinuxModsDirectoryMutation.mutate(linuxModsDirectoryPath)
+    }
   }
 
-  const handleBrowse = async () => {
+  const handleBrowse = async (): Promise<void> => {
     try {
       const selectedDirectory = await window.api.openDirectoryDialog()
       if (selectedDirectory) {
@@ -64,7 +91,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
-  const handleUseDefault = () => {
+  const handleBrowseLinuxModDirectory = async (): Promise<void> => {
+    try {
+      const selectedDirectory = await window.api.openDirectoryDialog()
+      if (selectedDirectory) {
+        setLinuxModsDirectoryPath(selectedDirectory)
+      }
+    } catch (error) {
+      toast.error(`Failed to open directory dialog: ${error}`)
+    }
+  }
+
+  const handleUseDefault = (): void => {
     if (defaultGameDirectory) {
       setCustomDirectory(defaultGameDirectory)
     } else {
@@ -116,6 +154,38 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </p>
             </div>
           </div>
+          {platform && platform.toLowerCase() === 'linux' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="linuxModsDirectory" className="text-right col-span-1">
+                Linux Mods Directory
+              </Label>
+              <div className="col-span-3 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    id="linuxModsDirectory"
+                    value={linuxModsDirectoryPath}
+                    onChange={(e) => setLinuxModsDirectoryPath(e.target.value)}
+                    placeholder="Enter Linux mods directory path"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleBrowseLinuxModDirectory}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Browse
+                  </Button>
+                </div>
+                <Alert className="w-full">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

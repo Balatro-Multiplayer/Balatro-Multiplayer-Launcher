@@ -37,6 +37,11 @@ export const platformQueryOptions = queryOptions({
   queryKey: ['platform']
 })
 
+export const linuxModsDirectoryQueryOptions = queryOptions({
+  queryFn: () => window.api.getLinuxModsDirectory(),
+  queryKey: ['linux-mods-directory']
+})
+
 export const updateStatusQueryOptions = queryOptions({
   queryFn: async () => {
     // This is a placeholder function that will be overridden by the useUpdateStatus hook

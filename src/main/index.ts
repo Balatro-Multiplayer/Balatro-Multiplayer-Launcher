@@ -187,6 +187,13 @@ app.whenReady().then(() => {
     return false
   })
 
+  // Linux mods directory IPC handlers
+  ipcMain.handle('settings:get-linux-mods-directory', () => settingsService.getLinuxModsDirectory())
+  ipcMain.handle('settings:set-linux-mods-directory', (_, directory) => {
+    settingsService.setLinuxModsDirectory(directory)
+    return true
+  })
+
   // Game launch IPC handler
   ipcMain.handle('game:launch', async () => {
     try {
