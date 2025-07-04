@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions, platformQueryOptions, linuxModsDirectoryQueryOptions } from '@renderer/queries'
+import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions, platformQueryOptions, linuxModsDirectoryQueryOptions, defaultLinuxModsDirectoryQueryOptions } from '@renderer/queries'
 import { settingsService } from '@renderer/servicies/settings.service'
 import {
   Dialog,
@@ -29,6 +29,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { data: defaultGameDirectory } = useQuery(defaultGameDirectoryQueryOptions)
   const { data: platform } = useQuery(platformQueryOptions)
   const { data: linuxModsDirectory } = useQuery(linuxModsDirectoryQueryOptions)
+  const { data: defaultLinuxModsDirectory } = useQuery(defaultLinuxModsDirectoryQueryOptions)
 
   const [customDirectory, setCustomDirectory] = useState<string>('')
   const [linuxModsDirectoryPath, setLinuxModsDirectoryPath] = useState<string>('')
@@ -114,6 +115,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
+  const handleResetLinuxModsDirectory = (): void => {
+    if (defaultLinuxModsDirectory) {
+      setLinuxModsDirectoryPath(defaultLinuxModsDirectory)
+      toast.success('Reset to default Linux mods directory')
+    } else {
+      toast.error('Default Linux mods directory not found')
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -179,6 +189,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     size="sm"
                   >
                     Browse
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleResetLinuxModsDirectory} 
+                    className="flex-1"
+                  >
+                    Reset to Default
                   </Button>
                 </div>
                 <Alert className="w-full">

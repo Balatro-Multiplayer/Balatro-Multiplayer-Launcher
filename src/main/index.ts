@@ -193,6 +193,7 @@ app.whenReady().then(() => {
     settingsService.setLinuxModsDirectory(directory)
     return true
   })
+  ipcMain.handle('settings:get-default-linux-mods-directory', () => settingsService.getDefaultLinuxModsDirectory())
 
   // Game launch IPC handler
   ipcMain.handle('game:launch', async () => {

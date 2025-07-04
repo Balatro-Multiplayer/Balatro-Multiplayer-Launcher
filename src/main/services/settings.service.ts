@@ -153,6 +153,26 @@ class SettingsService {
     this.setSetting('linuxModsDirectory', directory)
   }
 
+  // Get the default Linux mods directory
+  getDefaultLinuxModsDirectory(): string {
+    return path.join(
+      os.homedir(),
+      '.steam',
+      'steam',
+      'steamapps',
+      'compatdata',
+      '2379780',
+      'pfx',
+      'drive_c',
+      'users',
+      'steamuser',
+      'AppData',
+      'Roaming',
+      'Balatro',
+      'Mods'
+    )
+  }
+
   // Get all settings (for dev mode)
   getAllSettings(): Settings {
     return { ...this.settings }

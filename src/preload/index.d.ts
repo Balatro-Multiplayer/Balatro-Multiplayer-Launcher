@@ -57,6 +57,7 @@ interface API {
   getPlatform: () => Promise<string>
   getLinuxModsDirectory: () => Promise<string>
   setLinuxModsDirectory: (directory: string) => Promise<boolean>
+  getDefaultLinuxModsDirectory: () => Promise<string>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   logger: Logger
   getGameDirectory: () => Promise<string | null>

@@ -44,6 +44,7 @@ const api = {
   setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
   getLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-linux-mods-directory'),
   setLinuxModsDirectory: (directory: string) => ipcRenderer.invoke('settings:set-linux-mods-directory', directory),
+  getDefaultLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-default-linux-mods-directory'),
 
   // Analytics APIs
   isAnalyticsEnabled: () => ipcRenderer.invoke('settings:is-analytics-enabled'),

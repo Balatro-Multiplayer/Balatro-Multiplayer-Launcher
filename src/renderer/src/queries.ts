@@ -42,6 +42,11 @@ export const linuxModsDirectoryQueryOptions = queryOptions({
   queryKey: ['linux-mods-directory']
 })
 
+export const defaultLinuxModsDirectoryQueryOptions = queryOptions({
+  queryFn: () => window.api.getDefaultLinuxModsDirectory(),
+  queryKey: ['default-linux-mods-directory']
+})
+
 export const updateStatusQueryOptions = queryOptions({
   queryFn: async () => {
     // This is a placeholder function that will be overridden by the useUpdateStatus hook
