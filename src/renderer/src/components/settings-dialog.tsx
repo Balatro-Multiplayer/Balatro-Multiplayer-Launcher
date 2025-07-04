@@ -63,11 +63,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     mutationFn: (directory: string) => settingsService.setLinuxModsDirectory(directory),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['linux-mods-directory'] })
-      toast.success('Linux mods directory updated successfully')
-      onOpenChange(false)
+      if (platform === 'linux') {
+        toast.success('Linux mods directory updated successfully')
+        onOpenChange(false)
+      }
     },
     onError: (error) => {
-      toast.error(`Failed to update Linux mods directory: ${error}`)
+      if (platform === 'linux') {
+        toast.error(`Failed to update Linux mods directory: ${error}`)
+      }
     }
   })
 
