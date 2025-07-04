@@ -12,6 +12,7 @@ import { updateService } from './services/update.service'
 import { settingsService } from './services/settings.service'
 import { gameLaunchService } from './services/game-launch.service'
 import { analyticsService } from './services/analytics.service'
+import { getModsDir } from './constants'
 // Initialize logger
 loggerService.info('Application starting...')
 function createWindow(): void {
@@ -57,7 +58,7 @@ app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.balatromp.launcher')
 
   // Track app installation with Plausible Analytics
-  analyticsService.trackInstallation().catch(error => {
+  analyticsService.trackInstallation().catch((error) => {
     loggerService.error('Failed to track installation:', error)
   })
 
@@ -193,7 +194,9 @@ app.whenReady().then(() => {
     settingsService.setLinuxModsDirectory(directory)
     return true
   })
-  ipcMain.handle('settings:get-default-linux-mods-directory', () => settingsService.getDefaultLinuxModsDirectory())
+  ipcMain.handle('settings:get-default-linux-mods-directory', () =>
+    settingsService.getDefaultLinuxModsDirectory()
+  )
 
   // Game launch IPC handler
   ipcMain.handle('game:launch', async () => {
@@ -202,6 +205,28 @@ app.whenReady().then(() => {
       return { success: true }
     } catch (error) {
       loggerService.error('Failed to launch game:', error)
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('app:open-logs-directory', async () => {
+    try {
+      const modsDir = getModsDir(process.platform)
+
+      if (!modsDir) {
+        throw new Error('Could not determine mods directory')
+      }
+
+      const logsPath = path.join(modsDir, 'lovely', 'log')
+
+      if (!(await fs.pathExists(logsPath))) {
+        await fs.ensureDir(logsPath)
+      }
+
+      await shell.openPath(logsPath)
+      return { success: true }
+    } catch (error) {
+      loggerService.error('Failed to open logs directory:', error)
       return { success: false, error: error.message }
     }
   })

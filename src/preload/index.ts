@@ -9,7 +9,8 @@ const api = {
   getSmodsVersion: () => ipcRenderer.invoke('mod-installation:get-smods-version'),
   isLovelyInstalled: () => ipcRenderer.invoke('mod-installation:is-lovely-installed'),
   checkCompatibility: () => ipcRenderer.invoke('mod-installation:check-compatibility'),
-  keepSelectedVersion: (version: string) => ipcRenderer.invoke('mod-installation:keep-selected-version', version),
+  keepSelectedVersion: (version: string) =>
+    ipcRenderer.invoke('mod-installation:keep-selected-version', version),
   onInstallProgress: (callback: (progress: { status: string; progress?: number }) => void) => {
     // Add the event listener
     ipcRenderer.on('mod-installation:progress', (_event, progress) => callback(progress))
@@ -37,25 +38,31 @@ const api = {
   },
   // Settings APIs
   getGameDirectory: () => ipcRenderer.invoke('settings:get-game-directory'),
-  setGameDirectory: (directory: string) => ipcRenderer.invoke('settings:set-game-directory', directory),
+  setGameDirectory: (directory: string) =>
+    ipcRenderer.invoke('settings:set-game-directory', directory),
   openDirectoryDialog: () => ipcRenderer.invoke('settings:open-directory-dialog'),
   getDefaultGameDirectory: () => ipcRenderer.invoke('settings:get-default-game-directory'),
   isOnboardingCompleted: () => ipcRenderer.invoke('settings:is-onboarding-completed'),
-  setOnboardingCompleted: (completed = true) => ipcRenderer.invoke('settings:set-onboarding-completed', completed),
+  setOnboardingCompleted: (completed = true) =>
+    ipcRenderer.invoke('settings:set-onboarding-completed', completed),
   getLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-linux-mods-directory'),
-  setLinuxModsDirectory: (directory: string) => ipcRenderer.invoke('settings:set-linux-mods-directory', directory),
-  getDefaultLinuxModsDirectory: () => ipcRenderer.invoke('settings:get-default-linux-mods-directory'),
+  setLinuxModsDirectory: (directory: string) =>
+    ipcRenderer.invoke('settings:set-linux-mods-directory', directory),
+  getDefaultLinuxModsDirectory: () =>
+    ipcRenderer.invoke('settings:get-default-linux-mods-directory'),
 
   // Analytics APIs
   isAnalyticsEnabled: () => ipcRenderer.invoke('settings:is-analytics-enabled'),
-  setAnalyticsEnabled: (enabled = true) => ipcRenderer.invoke('settings:set-analytics-enabled', enabled),
+  setAnalyticsEnabled: (enabled = true) =>
+    ipcRenderer.invoke('settings:set-analytics-enabled', enabled),
 
   // Dev mode settings APIs
   getAllSettings: () => ipcRenderer.invoke('settings:get-all-settings'),
   setSetting: (key: string, value: any) => ipcRenderer.invoke('settings:set-setting', key, value),
 
-  // Game launch API
-  launchGame: () => ipcRenderer.invoke('game:launch')
+  launchGame: () => ipcRenderer.invoke('game:launch'),
+
+  openLogsDirectory: () => ipcRenderer.invoke('app:open-logs-directory')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

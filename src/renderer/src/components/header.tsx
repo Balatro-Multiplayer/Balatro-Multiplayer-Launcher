@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { ThemeToggle } from '@renderer/components/ui/theme-toggle'
 import { SettingsDialog } from './settings-dialog'
 import { DevSettingsDialog } from './dev-settings-dialog'
+import { toast } from 'sonner'
 
 export function Header() {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -57,6 +58,19 @@ export function Header() {
           >
             <Settings className="h-4 w-4" />
             <span>Settings</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.api.openLogsDirectory().then(({ success, error }) => {
+                if (!success) {
+                  toast.error(`Failed to open logs directory: ${error}`)
+                }
+              })
+            }}
+          >
+            Open Logs Directory
           </Button>
           {isDev && (
             <Button
