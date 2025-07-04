@@ -1,6 +1,5 @@
 appId: com.balatromp.launcher
 productName: Balatro Multiplayer Launcher
-icon: resources/icon.png
 directories:
   buildResources: build
 files:
