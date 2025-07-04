@@ -169,11 +169,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </div>
           </div>
           {platform && platform.toLowerCase() === 'linux' && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="linuxModsDirectory" className="text-right col-span-1">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="linuxModsDirectory" className="text-right col-span-1 mt-2">
                 Linux Mods Directory
               </Label>
               <div className="col-span-3 space-y-2">
+                <Alert variant="warning" className="w-full">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues.
+                  </AlertDescription>
+                </Alert>
                 <div className="flex gap-2">
                   <Input
                     id="linuxModsDirectory"
@@ -201,12 +207,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     Reset to Default
                   </Button>
                 </div>
-                <Alert className="w-full">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues.
-                  </AlertDescription>
-                </Alert>
               </div>
             </div>
           )}
