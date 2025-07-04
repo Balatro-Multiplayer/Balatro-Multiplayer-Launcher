@@ -177,7 +177,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <Alert variant="warning" className="w-full">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues.
+                    <strong>Warning:</strong> Only modify this if you know what you&apos;re doing. This directory is where mods are installed on Linux systems running Balatro through Proton/Wine. Changing this path incorrectly may cause mod installation issues. <strong>You must restart the application for changes to take effect.</strong>
                   </AlertDescription>
                 </Alert>
                 <div className="flex gap-2">
