@@ -4,6 +4,7 @@ import * as fs from 'fs-extra'
 import { loggerService } from './logger.service'
 import { modInstallationService } from './mod-installation.service'
 import { promisify } from 'node:util'
+import { shell } from 'electron'
 
 const execAsync = promisify(exec)
 
@@ -45,7 +46,7 @@ async function launchGame(): Promise<void> {
   }
 
   // Check if lovely console is enabled
-  const lovelyConsoleEnabled = true // Default to enabled for now
+  const lovelyConsoleEnabled = false // Default to disabled for now
 
   // Create a path object from the game directory
   const gamePath = path.resolve(gameDir)
@@ -99,24 +100,36 @@ async function launchGame(): Promise<void> {
       }
     }
 
-    // Launch the game
-    if (lovelyConsoleEnabled) {
-      spawn(exePath, [], { cwd: gamePath }).on('error', (err) => {
-        loggerService.error('Failed to launch game:', err)
-        throw new Error(`Failed to launch game: ${err.message}`)
-      })
-    } else {
-      spawn(exePath, ['--disable-console'], { cwd: gamePath }).on('error', (err) => {
-        loggerService.error('Failed to launch game:', err)
-        throw new Error(`Failed to launch game: ${err.message}`)
-      })
+    try {
+      // For Windows, we can create a batch file to launch the game with arguments if needed
+      if (!lovelyConsoleEnabled) {
+        // Create a batch file to launch with --disable-console
+        const batchPath = path.join(gamePath, 'launch_balatro.bat')
+        const batchContent = `@echo off
+cd /d "${gamePath}"
+start "" "${exePath}" --disable-console
+`
+        // Write the batch file
+        fs.writeFileSync(batchPath, batchContent)
+
+        // Launch the batch file
+        await shell.openPath(batchPath)
+        loggerService.info('Launched game with --disable-console using batch file')
+      } else {
+        // Launch the executable directly
+        await shell.openPath(exePath)
+        loggerService.info('Launched game directly using shell.openPath')
+      }
+    } catch (err) {
+      loggerService.error('Failed to launch game:', err)
+      throw new Error(`Failed to launch game: ${err instanceof Error ? err.message : String(err)}`)
     }
 
     loggerService.info(`Launched game from ${exePath}`)
   } else if (process.platform === 'linux') {
     // Linux code - Launch via Steam with Proton
     const BALATRO_STEAM_APP_ID = '2379780'
-    
+
     try {
       // First, try to detect if Steam is running
       const steamRunning = await isSteamRunning()
@@ -125,26 +138,26 @@ async function launchGame(): Promise<void> {
         // Try to start Steam
         spawn('steam', [], { detached: true, stdio: 'ignore' })
         // Wait a bit for Steam to start
-        await new Promise(resolve => setTimeout(resolve, 3000))
+        await new Promise((resolve) => setTimeout(resolve, 3000))
       }
 
       // Check if we can launch via Steam protocol
       const steamProtocolAvailable = await canUseSteamProtocol()
-      
+
       if (!steamProtocolAvailable) {
         throw new Error('Steam protocol not available')
       }
-      
+
       // Use steam:// protocol
       const steamUrl = `steam://rungameid/${BALATRO_STEAM_APP_ID}`
       loggerService.info(`Launching Balatro via Steam protocol: ${steamUrl}`)
       loggerService.info('Note: Using Steam launch options configured in Steam client')
-      
+
       spawn('xdg-open', [steamUrl]).on('error', (err) => {
         loggerService.error('Failed to launch via Steam protocol:', err)
         throw new Error(`Failed to launch via Steam protocol: ${err.message}`)
       })
-      
+
       loggerService.info('Successfully launched Balatro on Linux')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
