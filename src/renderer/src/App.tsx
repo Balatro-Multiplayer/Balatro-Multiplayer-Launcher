@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import ReactMarkdown from 'react-markdown'
 import {
   availableModVersionsQueryOptions,
   compatibilityQueryOptions,
@@ -355,7 +356,7 @@ function App(): React.JSX.Element {
               </div>
             </CardContent>
             <CardFooter className="flex-col space-y-3">
-              
+
               {/* Steam Launch Options Note - Only show on Linux */}
               {platform.data === 'linux' && (
                 <div className="w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
@@ -506,9 +507,9 @@ function App(): React.JSX.Element {
                             <CardContent>
                               {branch.versions[0].description ? (
                                 <>
-                                  <p className="text-sm line-clamp-2">
-                                    {branch.versions[0].description}
-                                  </p>
+                                  <div className="prose prose-sm dark:prose-invert max-w-none line-clamp-2">
+                                    <ReactMarkdown>{branch.versions[0].description}</ReactMarkdown>
+                                  </div>
                                   {branch.versions[0].description.length > 100 && (
                                     <Button
                                       variant="ghost"
@@ -644,7 +645,9 @@ function App(): React.JSX.Element {
                                 <CardContent>
                                   {version.description ? (
                                     <>
-                                      <p className="text-sm line-clamp-2">{version.description}</p>
+                                      <div className="prose prose-sm dark:prose-invert max-w-none line-clamp-2">
+                                        <ReactMarkdown>{version.description}</ReactMarkdown>
+                                      </div>
                                       {version.description.length > 100 && (
                                         <Button
                                           variant="ghost"
@@ -745,8 +748,14 @@ function App(): React.JSX.Element {
                     </DialogHeader>
                     <div className="mt-4">
                       <h3 className="text-sm font-medium mb-2">Description:</h3>
-                      <div className="text-sm whitespace-pre-wrap">
-                        {version.description || 'No description available'}
+                      <div className="max-h-[50vh] overflow-y-auto pr-2">
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          {version.description ? (
+                            <ReactMarkdown>{version.description}</ReactMarkdown>
+                          ) : (
+                            'No description available'
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex justify-end mt-4">
