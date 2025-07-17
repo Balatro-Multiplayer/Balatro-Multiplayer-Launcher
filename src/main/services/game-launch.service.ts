@@ -17,15 +17,15 @@ async function isSteamRunning(): Promise<boolean> {
       case 'win32':
         const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq steam.exe" /FO CSV /NH')
         return stdout.toLowerCase().includes('steam.exe')
-      
+
       case 'darwin':
         const { stdout: macStdout } = await execAsync('pgrep -x Steam')
         return macStdout.trim().length > 0
-      
+
       case 'linux':
         const { stdout: linuxStdout } = await execAsync('pgrep -x steam')
         return linuxStdout.trim().length > 0
-      
+
       default:
         return false
     }
@@ -42,14 +42,14 @@ async function canUseSteamProtocol(): Promise<boolean> {
     switch (process.platform) {
       case 'win32':
         return true
-      
+
       case 'darwin':
         return true
-      
+
       case 'linux':
         await execAsync('which xdg-open')
         return true
-      
+
       default:
         return false
     }
@@ -63,25 +63,25 @@ async function canUseSteamProtocol(): Promise<boolean> {
  */
 async function launchSteam(): Promise<void> {
   loggerService.info('Steam is not running, attempting to start Steam...')
-  
+
   try {
     switch (process.platform) {
       case 'win32':
         spawn('steam.exe', [], { detached: true, stdio: 'ignore' })
         break
-      
+
       case 'darwin':
         spawn('open', ['-a', 'Steam'], { detached: true, stdio: 'ignore' })
         break
-      
+
       case 'linux':
         spawn('steam', [], { detached: true, stdio: 'ignore' })
         break
-      
+
       default:
         throw new Error(`Unsupported platform: ${process.platform}`)
     }
-    
+
     await new Promise((resolve) => setTimeout(resolve, 3000))
   } catch (error) {
     loggerService.error('Failed to start Steam:', error)
@@ -98,18 +98,18 @@ async function openUrl(url: string): Promise<void> {
       case 'win32':
         await shell.openExternal(url)
         break
-      
+
       case 'darwin':
         await shell.openExternal(url)
         break
-      
+
       case 'linux':
         spawn('xdg-open', [url]).on('error', (err) => {
           loggerService.error('Failed to launch via Steam protocol:', err)
           throw new Error(`Failed to launch via Steam protocol: ${err.message}`)
         })
         break
-      
+
       default:
         throw new Error(`Unsupported platform: ${process.platform}`)
     }
@@ -174,14 +174,32 @@ async function launchGameDirectly(): Promise<void> {
 
     if (lovelyInstalled) {
       const lovelyPath = path.join(gamePath, 'liblovely.dylib')
-      const disableArg = !lovelyConsoleEnabled ? ' --disable-console' : ''
-      const commandLine = `cd '${gamePath}' && DYLD_INSERT_LIBRARIES='${lovelyPath}' '${balatroExecutable}'${disableArg}`
-      const applescript = `tell application "Terminal" to do script "${commandLine}"`
+      if (!lovelyConsoleEnabled) {
+        const child = spawn(balatroExecutable, [], {
+          cwd: gamePath,
+          env: {
+            ...process.env,
+            DYLD_INSERT_LIBRARIES: lovelyPath
+          },
+          detached: true,
+          stdio: 'ignore'
+        })
 
-      spawn('osascript', ['-e', applescript]).on('error', (err) => {
-        loggerService.error('Failed to launch game:', err)
-        throw new Error(`Failed to launch game: ${err.message}`)
-      })
+        child.unref() // this disconnects the child from parent's event loop
+
+        child.on('error', (err) => {
+          loggerService.error('Failed to launch game:', err)
+          throw new Error(`Failed to launch game: ${err.message}`)
+        })
+      } else {
+        const commandLine = `cd '${gamePath}' && DYLD_INSERT_LIBRARIES='${lovelyPath}' '${balatroExecutable}'`
+        const applescript = `tell application "Terminal" to do script "${commandLine}"`
+
+        spawn('osascript', ['-e', applescript]).on('error', (err) => {
+          loggerService.error('Failed to launch game:', err)
+          throw new Error(`Failed to launch game: ${err.message}`)
+        })
+      }
     } else {
       spawn(balatroExecutable, [], { cwd: gamePath }).on('error', (err) => {
         loggerService.error('Failed to launch game:', err)
