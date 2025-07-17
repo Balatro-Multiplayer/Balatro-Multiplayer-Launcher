@@ -88,6 +88,9 @@ app.whenReady().then(() => {
   ipcMain.handle('mod-installation:is-lovely-installed', () =>
     modInstallationService.isLovelyInstalled()
   )
+  ipcMain.handle('mod-installation:install-lovely', (_, forceUpdate = false) =>
+    modInstallationService.installLovely('latest', forceUpdate)
+  )
   ipcMain.handle('mod-installation:check-compatibility', () =>
     modInstallationService.checkModCompatibility()
   )

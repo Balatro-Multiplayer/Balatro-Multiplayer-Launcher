@@ -474,8 +474,8 @@ async function isLovelyInstalled() {
   return false
 }
 
-async function installLovely(version: string = 'latest') {
-  loggerService.info(`Installing lovely (requested version: ${version})`)
+async function installLovely(version: string = 'latest', forceUpdate: boolean = false) {
+  loggerService.info(`Installing lovely (requested version: ${version}, forceUpdate: ${forceUpdate})`)
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -491,9 +491,13 @@ async function installLovely(version: string = 'latest') {
 
   // Check if lovely is already installed
   const lovelyInstalled = await isLovelyInstalled()
-  if (lovelyInstalled) {
+  if (lovelyInstalled && !forceUpdate) {
     loggerService.info('Lovely is already installed. Skipping installation.')
     return true
+  }
+
+  if (lovelyInstalled && forceUpdate) {
+    loggerService.info('Lovely is already installed. Force updating...')
   }
 
   loggerService.info('Lovely is not installed. Installing...')

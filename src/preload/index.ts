@@ -8,6 +8,8 @@ const api = {
   loadModVersion: (id: number) => ipcRenderer.invoke('mod-installation:load-version', id),
   getSmodsVersion: () => ipcRenderer.invoke('mod-installation:get-smods-version'),
   isLovelyInstalled: () => ipcRenderer.invoke('mod-installation:is-lovely-installed'),
+  installLovely: (forceUpdate: boolean = false) =>
+    ipcRenderer.invoke('mod-installation:install-lovely', forceUpdate),
   checkCompatibility: () => ipcRenderer.invoke('mod-installation:check-compatibility'),
   keepSelectedVersion: (version: string) =>
     ipcRenderer.invoke('mod-installation:keep-selected-version', version),

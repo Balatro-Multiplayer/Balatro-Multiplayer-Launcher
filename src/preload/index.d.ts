@@ -74,6 +74,8 @@ interface API {
   setSetting: (key: string, value: unknown) => Promise<boolean>
   // Game launch API
   launchGame: () => Promise<{ success: boolean; error?: string }>
+  installLovely: (forceUpdate: boolean = false) =>
+    Promise<boolean>
 }
 
 declare global {
