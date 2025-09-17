@@ -58,14 +58,26 @@ async function getGameDirectory() {
     return customDir
   }
 
-  // If no custom directory is set, check if the default Steam path exists
+  // Attempt automatic detection via Steam libraries
+  try {
+    const { resolveBalatroPath } = await import('./balatro-path.service')
+    const detected = await resolveBalatroPath(null)
+    if (detected) {
+      // Persist for future runs
+      settingsService.setGameDirectory(detected)
+      return detected
+    }
+  } catch (e) {
+    loggerService.error('Automatic game path detection failed:', e)
+  }
+
+  // Legacy fallback: check a common default Steam path for this platform
   const defaultPath = STEAM_GAME_DIR[platform]
   if (defaultPath && (await fs.pathExists(defaultPath))) {
     return defaultPath
   }
 
-  // If not found, we could implement more sophisticated detection in the future
-  // For now, return null to indicate that the game directory couldn't be determined
+  // Not found
   return null
 }
 

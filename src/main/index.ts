@@ -115,9 +115,21 @@ app.whenReady().then(() => {
 
   // Settings IPC handlers
   ipcMain.handle('settings:get-game-directory', () => settingsService.getGameDirectory())
-  ipcMain.handle('settings:set-game-directory', (_, directory) => {
-    settingsService.setGameDirectory(directory)
-    return true
+  ipcMain.handle('settings:set-game-directory', async (_, directory) => {
+    try {
+      const { isBalatroInstallDirValid, normalizeCustomPath } = await import(
+        './services/balatro-path.service'
+      )
+      const normalized = normalizeCustomPath(directory)
+      if (await isBalatroInstallDirValid(normalized)) {
+        settingsService.setGameDirectory(normalized)
+        return true
+      }
+      return false
+    } catch (e) {
+      loggerService.error('Failed to validate and set game directory:', e)
+      return false
+    }
   })
   ipcMain.handle('settings:open-directory-dialog', async (event) => {
     const mainWindow = BrowserWindow.fromWebContents(event.sender)
@@ -131,17 +143,20 @@ app.whenReady().then(() => {
     return canceled ? null : filePaths[0]
   })
   ipcMain.handle('settings:get-default-game-directory', async () => {
+    try {
+      const { resolveBalatroPath } = await import('./services/balatro-path.service')
+      // Try to find an install automatically
+      const saved = settingsService.getGameDirectory()
+      const detected = await resolveBalatroPath(saved)
+      if (detected) return detected
+    } catch (e) {
+      loggerService.error('Auto-detect default game directory failed:', e)
+    }
+
+    // Fallback to simple platform defaults if they exist
     const platform = process.platform
     const defaultPath = {
-      win32: path.join(
-        os.homedir(),
-        'AppData',
-        'Roaming',
-        'Steam',
-        'steamapps',
-        'common',
-        'Balatro'
-      ),
+      win32: path.join('C:', 'Program Files (x86)', 'Steam', 'steamapps', 'common', 'Balatro'),
       darwin: path.join(
         os.homedir(),
         'Library',

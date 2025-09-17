@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { gameDirectoryQueryOptions, defaultGameDirectoryQueryOptions } from '@renderer/queries'
 import { settingsService } from '@renderer/servicies/settings.service'
@@ -11,9 +11,13 @@ export function OnboardingPage() {
   const queryClient = useQueryClient()
   const { data: gameDirectory, isLoading: isLoadingGameDirectory } =
     useQuery(gameDirectoryQueryOptions)
-  const { data: defaultGameDirectory } = useQuery(defaultGameDirectoryQueryOptions)
+  const { data: defaultGameDirectory, isLoading: isLoadingDefault } = useQuery(
+    defaultGameDirectoryQueryOptions
+  )
 
   const [customDirectory, setCustomDirectory] = useState<string>('')
+  const [isAutoDetecting, setIsAutoDetecting] = useState<boolean>(false)
+  const autoTriedRef = useRef(false)
 
   // Initialize the custom directory input when data is loaded
   useEffect(() => {
@@ -43,6 +47,34 @@ export function OnboardingPage() {
     }
   })
 
+  // Auto-detect on first load: if we don't already have a saved directory but a default
+  // (auto-detected) directory is available, save it automatically and finish onboarding.
+  useEffect(() => {
+    if (autoTriedRef.current) return
+    if (isLoadingGameDirectory || isLoadingDefault) return
+    if (gameDirectory) return
+
+    if (defaultGameDirectory) {
+      autoTriedRef.current = true
+      setIsAutoDetecting(true)
+      settingsService
+        .setGameDirectory(defaultGameDirectory)
+        .then(async (success) => {
+          if (success) {
+            await settingsService.setOnboardingCompleted(true)
+            queryClient.invalidateQueries({ queryKey: ['game-directory'] })
+            queryClient.invalidateQueries({ queryKey: ['onboarding-completed'] })
+            toast.success('Detected your Balatro installation and finished onboarding')
+          }
+        })
+        .catch((error) => {
+          // Just log a toast; UI remains for manual selection
+          toast.error(`Failed to apply detected directory automatically: ${error}`)
+        })
+        .finally(() => setIsAutoDetecting(false))
+    }
+  }, [gameDirectory, defaultGameDirectory, isLoadingGameDirectory, isLoadingDefault, queryClient])
+
   const handleSave = () => {
     if (customDirectory) {
       updateGameDirectoryMutation.mutate(customDirectory)
@@ -70,6 +102,8 @@ export function OnboardingPage() {
     }
   }
 
+  const isBusy = isAutoDetecting || updateGameDirectoryMutation.isPending
+
   return (
     <div className="flex flex-col">
       <div className="flex-1 flex items-center justify-center p-4">
@@ -79,7 +113,9 @@ export function OnboardingPage() {
               Welcome to Balatro Multiplayer Launcher!
             </h1>
             <p className="text-muted-foreground mt-2">
-              To get started, please set your Balatro game directory.
+              {isAutoDetecting
+                ? 'Detecting your Balatro installation...'
+                : 'To get started, please set your Balatro game directory.'}
             </p>
           </div>
 
@@ -95,18 +131,20 @@ export function OnboardingPage() {
                   className="flex-1"
                   readOnly
                 />
-                <Button
-                  type="button"
-                  onClick={handleBrowse}
-                  variant="outline"
-                >
+                <Button type="button" onClick={handleBrowse} variant="outline" disabled={isBusy}>
                   Browse
                 </Button>
               </div>
             </div>
 
             {defaultGameDirectory && (
-              <Button variant="outline" size="sm" onClick={handleUseDefault} className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUseDefault}
+                className="w-full"
+                disabled={isBusy}
+              >
                 Use Default Steam Path
               </Button>
             )}
@@ -117,12 +155,12 @@ export function OnboardingPage() {
                 : 'Default Steam path not detected'}
             </p>
 
-            <Button
-              className="w-full mt-4"
-              onClick={handleSave}
-              disabled={updateGameDirectoryMutation.isPending}
-            >
-              {updateGameDirectoryMutation.isPending ? 'Saving...' : 'Continue'}
+            <Button className="w-full mt-4" onClick={handleSave} disabled={isBusy}>
+              {updateGameDirectoryMutation.isPending
+                ? 'Saving...'
+                : isAutoDetecting
+                  ? 'Detecting...'
+                  : 'Continue'}
             </Button>
           </div>
         </div>
