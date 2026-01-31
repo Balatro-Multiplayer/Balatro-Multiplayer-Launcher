@@ -43,6 +43,5 @@ deb:
   artifactName: ${name}.${ext}
 npmRebuild: false
 publish:
-  - provider: github
-    releaseType: draft
-    overwrite: true
+  provider: github
+  releaseType: draft
