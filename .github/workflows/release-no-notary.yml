@@ -1,4 +1,4 @@
-name: Build/release Electron app (No Notary)
+name: Build/release Electron app (no notarization)
 permissions:
   contents: write
 
@@ -10,6 +10,7 @@ on:
         required: false
         default: false
         type: boolean
+
 jobs:
   release:
     runs-on: ${{ matrix.os }}
@@ -79,8 +80,8 @@ jobs:
           # increase timeout for codesign
           defaults write com.apple.security.codesign timeout 300
 
-          # run build without notarization
-          bun run build:mac --no-notarize
+          # run build with notarization disabled
+          bun run build:mac -- -c.mac.notarize=false
 
       - name: Clean up keychain
         if: matrix.os == 'macos-latest'
