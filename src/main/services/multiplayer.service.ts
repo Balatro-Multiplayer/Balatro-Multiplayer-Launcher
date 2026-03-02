@@ -64,7 +64,7 @@ class MultiplayerService {
       baseUrl = `${baseUrl}/download/${version}`
     } else {
       // custom 'latest' url
-      baseUrl = `http://167.99.146.95:8080/lovely/latest`
+      baseUrl = `https://latest-lovely.casjb.co.uk/lovely/latest`
     }
 
     if (platform === 'win32') {
