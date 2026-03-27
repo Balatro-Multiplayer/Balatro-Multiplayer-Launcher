@@ -37,6 +37,11 @@ export const platformQueryOptions = queryOptions({
   queryKey: ['platform']
 })
 
+export const macosJitStatusQueryOptions = queryOptions({
+  queryFn: () => window.api.getMacosJitStatus(),
+  queryKey: ['macos-jit-status']
+})
+
 export const linuxModsDirectoryQueryOptions = queryOptions({
   queryFn: () => window.api.getLinuxModsDirectory(),
   queryKey: ['linux-mods-directory']

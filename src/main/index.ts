@@ -12,6 +12,7 @@ import { updateService } from './services/update.service'
 import { settingsService } from './services/settings.service'
 import { gameLaunchService } from './services/game-launch.service'
 import { analyticsService } from './services/analytics.service'
+import { macosJitService } from './services/macos-jit.service'
 import { getModsDir } from './constants'
 // Initialize logger
 loggerService.info('Application starting...')
@@ -90,6 +91,10 @@ app.whenReady().then(() => {
   )
   ipcMain.handle('mod-installation:install-lovely', (_, forceUpdate = false) =>
     modInstallationService.installLovely('latest', forceUpdate)
+  )
+  ipcMain.handle('game:get-macos-jit-status', () => macosJitService.getStatus())
+  ipcMain.handle('game:set-macos-jit-enabled', (_, enabled: boolean) =>
+    macosJitService.setJitEnabled(enabled)
   )
   ipcMain.handle('mod-installation:check-compatibility', () =>
     modInstallationService.checkModCompatibility()
@@ -223,7 +228,7 @@ app.whenReady().then(() => {
       return { success: true }
     } catch (error) {
       loggerService.error('Failed to launch game:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
 
@@ -245,7 +250,7 @@ app.whenReady().then(() => {
       return { success: true }
     } catch (error) {
       loggerService.error('Failed to open logs directory:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
 

@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-interface ModVersion{
+interface ModVersion {
   version: string
   description: string
   name: string
@@ -40,21 +40,35 @@ interface UpdateStatus {
   [key: string]: any
 }
 
+interface MacosJitStatus {
+  supported: boolean
+  canToggle: boolean
+  crashFixEnabled: boolean | null
+  jitEnabled: boolean | null
+  message: string
+  source: 'archive' | 'directory' | 'missing'
+}
+
 interface API {
   getInstalledModVersions: () => Promise<Array<string>>
   getAvailableModVersions: () => Promise<Array<ModVersion>>
-  loadModVersion: (id:number) => Promise<void>
+  loadModVersion: (id: number) => Promise<void>
   getSmodsVersion: () => Promise<string | null>
   isLovelyInstalled: () => Promise<boolean>
   checkCompatibility: () => Promise<CompatibilityResult>
   keepSelectedVersion: (version: string) => Promise<string | undefined>
-  onInstallProgress: (callback: (progress: { status: string, progress?: number }) => void) => () => void
+  onInstallProgress: (
+    callback: (progress: { status: string; progress?: number }) => void
+  ) => () => void
   // Update service APIs
   checkForUpdates: () => Promise<void>
   downloadUpdate: () => Promise<void>
   installUpdate: () => void
   getAppVersion: () => Promise<string>
+  isDev: () => Promise<boolean>
   getPlatform: () => Promise<string>
+  getMacosJitStatus: () => Promise<MacosJitStatus>
+  setMacosJitEnabled: (enabled: boolean) => Promise<MacosJitStatus>
   getLinuxModsDirectory: () => Promise<string>
   setLinuxModsDirectory: (directory: string) => Promise<boolean>
   getDefaultLinuxModsDirectory: () => Promise<string>
@@ -74,8 +88,8 @@ interface API {
   setSetting: (key: string, value: unknown) => Promise<boolean>
   // Game launch API
   launchGame: () => Promise<{ success: boolean; error?: string }>
-  installLovely: (forceUpdate: boolean = false) =>
-    Promise<boolean>
+  installLovely: (forceUpdate: boolean = false) => Promise<boolean>
+  openLogsDirectory: () => Promise<{ success: boolean; error?: string }>
 }
 
 declare global {

@@ -58,6 +58,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     mutationFn: (directory: string) => settingsService.setGameDirectory(directory),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['game-directory'] })
+      queryClient.invalidateQueries({ queryKey: ['macos-jit-status'] })
       toast.success('Game directory updated successfully')
       onOpenChange(false)
     },

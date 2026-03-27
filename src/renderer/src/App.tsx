@@ -5,11 +5,20 @@ import {
   compatibilityQueryOptions,
   installedModVersionsQueryOptions,
   lovelyInstalledQueryOptions,
+  macosJitStatusQueryOptions,
   onboardingCompletedQueryOptions,
   smodsVersionQueryOptions,
   platformQueryOptions
 } from '@renderer/queries'
-import { CheckCircle2, ChevronRight, Info, RefreshCcw, Play, Copy } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronRight,
+  Info,
+  RefreshCcw,
+  Play,
+  Copy,
+  AlertTriangle
+} from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { useCallback, useMemo, useState } from 'react'
@@ -40,6 +49,8 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@renderer/components/ui/tooltip'
+import { Switch } from '@renderer/components/ui/switch'
+import { Label } from '@renderer/components/ui/label'
 
 function App(): React.JSX.Element {
   const installedVersions = useQuery(installedModVersionsQueryOptions)
@@ -48,6 +59,10 @@ function App(): React.JSX.Element {
   const lovelyInstalled = useQuery(lovelyInstalledQueryOptions)
   const compatibility = useQuery(compatibilityQueryOptions)
   const platform = useQuery(platformQueryOptions)
+  const macosJitStatus = useQuery({
+    ...macosJitStatusQueryOptions,
+    enabled: platform.data === 'darwin'
+  })
   const { data: onboardingCompleted, isLoading: isLoadingOnboarding } = useQuery(
     onboardingCompletedQueryOptions
   )
@@ -129,6 +144,27 @@ function App(): React.JSX.Element {
       toast.dismiss(toastId)
       toast.error('Failed to launch game')
       console.error('Game launch error:', error)
+    }
+  })
+
+  const toggleMacosJit = useMutation({
+    mutationFn: async (crashFixEnabled: boolean) => window.api.setMacosJitEnabled(!crashFixEnabled),
+    onMutate: (crashFixEnabled) =>
+      toast.loading(crashFixEnabled ? 'Disabling LuaJIT...' : 'Enabling LuaJIT...'),
+    onSuccess: (result, crashFixEnabled, toastId) => {
+      toast.dismiss(toastId)
+      toast.success(
+        crashFixEnabled
+          ? 'LuaJIT disabled. macOS crash fix enabled'
+          : 'LuaJIT enabled. macOS crash fix disabled'
+      )
+
+      queryClient.setQueryData(macosJitStatusQueryOptions.queryKey, result)
+    },
+    onError: (error, crashFixEnabled, toastId) => {
+      toast.dismiss(toastId)
+      toast.error(`${crashFixEnabled ? 'Failed to disable LuaJIT' : 'Failed to enable LuaJIT'}`)
+      console.error('macOS JIT toggle error:', error)
     }
   })
 
@@ -290,6 +326,7 @@ function App(): React.JSX.Element {
                     smodsVersion.refetch()
                     lovelyInstalled.refetch()
                     compatibility.refetch()
+                    macosJitStatus.refetch()
                   }}
                   className="flex items-center gap-2"
                   title="Refresh installation status"
@@ -396,6 +433,62 @@ function App(): React.JSX.Element {
                   )}
                 </div>
               </div>
+
+              {platform.data === 'darwin' && (
+                <div className="space-y-3 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        <h3 className="text-sm font-medium">macOS random crash fix</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Newer macOS builds can crash Balatro randomly with multiplayer. This toggle
+                        edits Balatro&apos;s `conf.lua` and turns LuaJIT off or on for you.
+                      </p>
+                    </div>
+                    {macosJitStatus.data?.jitEnabled !== null &&
+                      macosJitStatus.data?.jitEnabled !== undefined && (
+                        <Badge
+                          variant={macosJitStatus.data.crashFixEnabled ? 'secondary' : 'outline'}
+                          className={
+                            macosJitStatus.data.crashFixEnabled
+                              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-200'
+                              : ''
+                          }
+                        >
+                          {macosJitStatus.data.jitEnabled ? 'LuaJIT on' : 'LuaJIT off'}
+                        </Badge>
+                      )}
+                  </div>
+
+                  {macosJitStatus.isLoading ? (
+                    <p className="text-sm text-muted-foreground">Checking LuaJIT status...</p>
+                  ) : macosJitStatus.data?.canToggle ? (
+                    <div className="flex items-start justify-between gap-4 rounded-md border bg-background/70 p-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="macos-crash-fix" className="text-sm font-medium">
+                          Disable LuaJIT
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Recommended if Balatro crashes randomly on newer macOS.
+                        </p>
+                      </div>
+                      <Switch
+                        id="macos-crash-fix"
+                        checked={macosJitStatus.data.crashFixEnabled ?? false}
+                        disabled={toggleMacosJit.isPending}
+                        onCheckedChange={(checked) => toggleMacosJit.mutate(checked)}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {macosJitStatus.data?.message ?? 'Could not read Balatro conf.lua.'}
+                    </p>
+                  )}
+
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex-col space-y-3">
               {/* Steam Launch Options Note - Only show on Linux */}
