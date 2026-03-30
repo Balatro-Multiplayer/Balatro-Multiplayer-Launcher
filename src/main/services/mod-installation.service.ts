@@ -86,6 +86,43 @@ const arch = os.arch()
 const modsDir = getModsDir(platform)
 const versionStorageDir = VERSION_STORAGE_DIR[platform] ?? null
 
+function getJsonFiles(files: string[]) {
+  return files
+    .filter((file) => file.toLowerCase().endsWith('.json'))
+    .sort(
+      (a, b) =>
+        Number(b.toLowerCase() === 'manifest.json') - Number(a.toLowerCase() === 'manifest.json')
+    )
+}
+
+async function readJsonFileSafe(
+  filePath: string,
+  context: string
+): Promise<Record<string, any> | null> {
+  try {
+    return await fs.readJSON(filePath)
+  } catch (error) {
+    loggerService.warn(`Skipping invalid JSON while ${context}: ${filePath}`, error)
+    return null
+  }
+}
+
+async function findMatchingJsonFile(
+  dirPath: string,
+  files: string[],
+  context: string,
+  predicate: (json: Record<string, any>) => boolean
+): Promise<Record<string, any> | null> {
+  for (const jsonFile of getJsonFiles(files)) {
+    const json = await readJsonFileSafe(path.join(dirPath, jsonFile), context)
+    if (json && predicate(json)) {
+      return json
+    }
+  }
+
+  return null
+}
+
 async function checkDirectoryForMultiplayerInstallation(): Promise<Array<string>> {
   const dir = getModsDir(platform)
   if (!dir) {
@@ -113,13 +150,21 @@ async function determineMultiplayerInstalledVersion() {
   )
   const configs: Array<Record<string, any>> = []
   for (const dir of dirs) {
-    const files = await fs.readdir(path.join(modsDir, dir))
-    const jsonFile = files.find((e) => e.endsWith('.json'))
-    if (jsonFile) {
-      const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
-      if (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') {
+    try {
+      const dirPath = path.join(modsDir, dir)
+      const files = await fs.readdir(dirPath)
+      const json = await findMatchingJsonFile(
+        dirPath,
+        files,
+        `checking directory ${dir} for multiplayer`,
+        (config) => config.id === 'Multiplayer' || config.id === 'NanoMultiplayer'
+      )
+
+      if (json) {
         configs.push(json)
       }
+    } catch (error) {
+      loggerService.error(`Error checking directory ${dir} for multiplayer:`, error)
     }
   }
   return configs.map((e) => e.version)
@@ -139,33 +184,34 @@ async function storeInstalledVersions() {
       )
 
       for (const dir of dirs) {
-        const files = await fs.readdir(path.join(modsDir, dir))
-        const jsonFile = files.find((e) => e.endsWith('.json'))
+        const dirPath = path.join(modsDir, dir)
+        const files = await fs.readdir(dirPath)
+        const json = await findMatchingJsonFile(
+          dirPath,
+          files,
+          `checking directory ${dir} for multiplayer storage`,
+          (config) =>
+            (config.id === 'Multiplayer' || config.id === 'NanoMultiplayer') &&
+            config.version === version
+        )
 
-        if (jsonFile) {
-          const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
+        if (json) {
+          // Create a version-specific storage directory without timestamp
+          const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
 
-          if (
-            (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') &&
-            json.version === version
-          ) {
-            // Create a version-specific storage directory without timestamp
-            const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
+          // Ensure the storage directory exists
+          await fs.ensureDir(versionDir)
 
-            // Ensure the storage directory exists
-            await fs.ensureDir(versionDir)
+          // Remove any existing content in the storage directory
+          await fs.emptyDir(versionDir)
 
-            // Remove any existing content in the storage directory
-            await fs.emptyDir(versionDir)
+          // Copy the directory contents to storage
+          await fs.copy(dirPath, versionDir)
 
-            // Copy the directory contents to storage
-            await fs.copy(path.join(modsDir, dir), versionDir)
+          // Remove the original directory
+          await fs.remove(dirPath)
 
-            // Remove the original directory
-            await fs.remove(path.join(modsDir, dir))
-
-            loggerService.info(`Stored version ${version} in ${versionDir}`)
-          }
+          loggerService.info(`Stored version ${version} in ${versionDir}`)
         }
       }
     }
@@ -178,7 +224,7 @@ async function findAllSmodsInstallations() {
     throw new Error('Mods directory not found')
   }
 
-  const smodsInstallations = []
+  const smodsInstallations: string[] = []
 
   // Read all directories in the mods folder
   const dirs = (await fs.readdir(modsDir)).filter((e) =>
@@ -191,32 +237,20 @@ async function findAllSmodsInstallations() {
       const dirPath = path.join(modsDir, dir)
       const files = await fs.readdir(dirPath)
 
-      // First, check for manifest.json that identifies as Steamodded
-      const manifestFile = files.find((e) => e.toLowerCase() === 'manifest.json')
-      if (manifestFile) {
-        const manifestPath = path.join(dirPath, manifestFile)
-        const manifest = await fs.readJSON(manifestPath)
+      const json = await findMatchingJsonFile(
+        dirPath,
+        files,
+        `checking directory ${dir} for SMods`,
+        (metadata) =>
+          metadata.name === 'Steamodded' ||
+          metadata.id === 'SMods' ||
+          metadata.id === 'smods' ||
+          metadata.name === 'SMods' ||
+          metadata.name === 'smods'
+      )
 
-        // Check if this is Steamodded by looking at the name field
-        if (manifest.name === 'Steamodded') {
-          smodsInstallations.push(dirPath)
-          continue // Found Steamodded in this directory, no need to check further
-        }
-      }
-
-      // Fallback to the old method of checking JSON files for id/name
-      const jsonFile = files.find((e) => e.endsWith('.json'))
-      if (jsonFile) {
-        const json = await fs.readJSON(path.join(dirPath, jsonFile))
-        // Check if this is SMods by looking for the id field
-        if (
-          json.id === 'SMods' ||
-          json.id === 'smods' ||
-          json.name === 'SMods' ||
-          json.name === 'smods'
-        ) {
-          smodsInstallations.push(dirPath)
-        }
+      if (json) {
+        smodsInstallations.push(dirPath)
       }
     } catch (error) {
       loggerService.error(`Error checking directory ${dir} for SMods:`, error)
@@ -240,52 +274,45 @@ async function determineSmodsInstalledVersion() {
   // Look for SMods in any directory
   for (const dir of dirs) {
     try {
-      const files = await fs.readdir(path.join(modsDir, dir))
+      const dirPath = path.join(modsDir, dir)
+      const files = await fs.readdir(dirPath)
+      const json = await findMatchingJsonFile(
+        dirPath,
+        files,
+        `checking directory ${dir} for SMods`,
+        (metadata) =>
+          metadata.name === 'Steamodded' ||
+          metadata.id === 'SMods' ||
+          metadata.id === 'smods' ||
+          metadata.name === 'SMods' ||
+          metadata.name === 'smods'
+      )
 
-      // First, check for manifest.json that identifies as Steamodded
-      const manifestFile = files.find((e) => e.toLowerCase() === 'manifest.json')
-      if (manifestFile) {
-        const manifestPath = path.join(modsDir, dir, manifestFile)
-        const manifest = await fs.readJSON(manifestPath)
+      if (json?.name === 'Steamodded') {
+        // Look for version.lua file
+        const versionLuaFile = files.find((e) => e.toLowerCase() === 'version.lua')
+        if (versionLuaFile) {
+          // Read the version from version.lua
+          const versionLuaPath = path.join(dirPath, versionLuaFile)
+          const versionLuaContent = await fs.readFile(versionLuaPath, 'utf-8')
 
-        // Check if this is Steamodded by looking at the name field
-        if (manifest.name === 'Steamodded') {
-          // Look for version.lua file
-          const versionLuaFile = files.find((e) => e.toLowerCase() === 'version.lua')
-          if (versionLuaFile) {
-            // Read the version from version.lua
-            const versionLuaPath = path.join(modsDir, dir, versionLuaFile)
-            const versionLuaContent = await fs.readFile(versionLuaPath, 'utf-8')
-
-            // Extract the version string from the Lua file
-            // The format is expected to be: return "1.0.0~BETA-0530b-STEAMODDED"
-            const versionMatch = versionLuaContent.match(/return\s*"([^"]+)"/)
-            if (versionMatch && versionMatch[1]) {
-              return versionMatch[1]
-            }
-
-            // If we can't parse the version.lua file, fall back to version_number in manifest
-            return manifest.version_number || 'unknown'
+          // Extract the version string from the Lua file
+          // The format is expected to be: return "1.0.0~BETA-0530b-STEAMODDED"
+          const versionMatch = versionLuaContent.match(/return\s*"([^"]+)"/)
+          if (versionMatch && versionMatch[1]) {
+            return versionMatch[1]
           }
 
-          // If no version.lua, use version_number from manifest
-          return manifest.version_number || 'unknown'
+          // If we can't parse the version.lua file, fall back to version_number in manifest
+          return json.version_number || 'unknown'
         }
+
+        // If no version.lua, use version_number from manifest
+        return json.version_number || 'unknown'
       }
 
-      // Fallback to the old method of checking JSON files for id/name
-      const jsonFile = files.find((e) => e.endsWith('.json'))
-      if (jsonFile) {
-        const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
-        // Check if this is SMods by looking for the id field
-        if (
-          json.id === 'SMods' ||
-          json.id === 'smods' ||
-          json.name === 'SMods' ||
-          json.name === 'smods'
-        ) {
-          return json.version || 'unknown'
-        }
+      if (json) {
+        return json.version || 'unknown'
       }
     } catch (error) {
       loggerService.error(`Error checking directory ${dir} for SMods:`, error)
@@ -314,7 +341,13 @@ async function determineSmodsInstalledVersion() {
       // Check for a manifest.json file which might contain version info
       const manifestPath = path.join(smodsDir, 'manifest.json')
       if (await fs.pathExists(manifestPath)) {
-        const manifest = await fs.readJSON(manifestPath)
+        const manifest = await readJsonFileSafe(
+          manifestPath,
+          'checking smods manifest for installed version'
+        )
+        if (!manifest) {
+          return 'unknown'
+        }
         if (manifest.version_number) {
           return manifest.version_number
         }
@@ -324,18 +357,16 @@ async function determineSmodsInstalledVersion() {
       }
 
       // If no manifest.json or no version in it, check for other JSON files
-      const jsonFiles = files.filter((file) => file.endsWith('.json'))
-      for (const jsonFile of jsonFiles) {
-        try {
-          const json = await fs.readJSON(path.join(smodsDir, jsonFile))
-          if (json.version_number) {
-            return json.version_number
-          }
-          if (json.version) {
-            return json.version
-          }
-        } catch (error) {
-          loggerService.error(`Error reading JSON file ${jsonFile}:`, error)
+      for (const jsonFile of getJsonFiles(files)) {
+        const json = await readJsonFileSafe(
+          path.join(smodsDir, jsonFile),
+          `checking smods metadata file ${jsonFile}`
+        )
+        if (json?.version_number) {
+          return json.version_number
+        }
+        if (json?.version) {
+          return json.version
         }
       }
 
@@ -487,7 +518,9 @@ async function isLovelyInstalled() {
 }
 
 async function installLovely(version: string = 'latest', forceUpdate: boolean = false) {
-  loggerService.info(`Installing lovely (requested version: ${version}, forceUpdate: ${forceUpdate})`)
+  loggerService.info(
+    `Installing lovely (requested version: ${version}, forceUpdate: ${forceUpdate})`
+  )
 
   if (!modsDir) {
     throw new Error('Mods directory not found')
@@ -898,36 +931,38 @@ async function keepSelectedVersion(versionToKeep: string) {
   )
 
   for (const dir of dirs) {
-    const files = await fs.readdir(path.join(modsDir, dir))
-    const jsonFile = files.find((e) => e.endsWith('.json'))
+    const dirPath = path.join(modsDir, dir)
+    const files = await fs.readdir(dirPath)
+    const json = await findMatchingJsonFile(
+      dirPath,
+      files,
+      `checking directory ${dir} while keeping multiplayer version`,
+      (config) => config.id === 'Multiplayer' || config.id === 'NanoMultiplayer'
+    )
 
-    if (jsonFile) {
-      const json = await fs.readJSON(path.join(modsDir, dir, jsonFile))
+    if (json) {
+      const version = json.version
 
-      if (json.id === 'Multiplayer' || json.id === 'NanoMultiplayer') {
-        const version = json.version
+      // If this is not the version to keep, move it to storage
+      if (version !== versionToKeep) {
+        // Create a version-specific storage directory
+        const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
 
-        // If this is not the version to keep, move it to storage
-        if (version !== versionToKeep) {
-          // Create a version-specific storage directory
-          const versionDir = path.join(versionStorageDir, `multiplayer-${version}`)
+        // Ensure the storage directory exists
+        await fs.ensureDir(versionDir)
 
-          // Ensure the storage directory exists
-          await fs.ensureDir(versionDir)
+        // Remove any existing content in the storage directory
+        await fs.emptyDir(versionDir)
 
-          // Remove any existing content in the storage directory
-          await fs.emptyDir(versionDir)
+        // Copy the directory contents to storage
+        await fs.copy(dirPath, versionDir)
 
-          // Copy the directory contents to storage
-          await fs.copy(path.join(modsDir, dir), versionDir)
+        // Remove the original directory
+        await fs.remove(dirPath)
 
-          // Remove the original directory
-          await fs.remove(path.join(modsDir, dir))
-
-          loggerService.info(`Moved version ${version} to storage`)
-        } else {
-          loggerService.info(`Keeping version ${version}`)
-        }
+        loggerService.info(`Moved version ${version} to storage`)
+      } else {
+        loggerService.info(`Keeping version ${version}`)
       }
     }
   }
