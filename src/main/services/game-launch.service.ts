@@ -213,13 +213,9 @@ async function launchGameDirectly(): Promise<void> {
       throw new Error(`No executable found in ${gamePath}`)
     }
 
-    const dllPath = path.join(gamePath, 'version.dll')
-
-    if (!fs.existsSync(dllPath)) {
-      const lovelyInstalled = await modInstallationService.isLovelyInstalled()
-      if (!lovelyInstalled) {
-        loggerService.info('Lovely not installed, launching game without it')
-      }
+    const lovelyInstalled = await modInstallationService.isLovelyInstalled()
+    if (!lovelyInstalled) {
+      loggerService.info('Lovely not installed, launching game without it')
     }
 
     try {

@@ -493,6 +493,52 @@ async function installSmods(version: string = 'latest') {
   }
 }
 
+const LOVELY_WINDOWS_DLLS = ['winmm.dll', 'version.dll']
+
+async function findExtractedFile(extractDir: string, fileName: string): Promise<string | null> {
+  const rootPath = path.join(extractDir, fileName)
+  if (await fs.pathExists(rootPath)) {
+    return rootPath
+  }
+  for (const entry of await fs.readdir(extractDir)) {
+    const entryPath = path.join(extractDir, entry)
+    if ((await fs.stat(entryPath)).isDirectory()) {
+      const nestedPath = path.join(entryPath, fileName)
+      if (await fs.pathExists(nestedPath)) {
+        return nestedPath
+      }
+    }
+  }
+  return null
+}
+
+async function findInstalledLovelyDll(gameDir: string): Promise<string | null> {
+  for (const dllName of LOVELY_WINDOWS_DLLS) {
+    if (await fs.pathExists(path.join(gameDir, dllName))) {
+      return dllName
+    }
+  }
+  return null
+}
+
+async function installLovelyDll(extractDir: string, gameDir: string): Promise<string> {
+  for (const dllName of LOVELY_WINDOWS_DLLS) {
+    const sourcePath = await findExtractedFile(extractDir, dllName)
+    if (!sourcePath) {
+      continue
+    }
+    await fs.copy(sourcePath, path.join(gameDir, dllName))
+    // Lovely 0.10+ refuses to start while an old version.dll is present
+    for (const otherDll of LOVELY_WINDOWS_DLLS) {
+      if (otherDll !== dllName) {
+        await fs.remove(path.join(gameDir, otherDll))
+      }
+    }
+    return dllName
+  }
+  throw new Error(`Lovely archive did not contain ${LOVELY_WINDOWS_DLLS.join(' or ')}`)
+}
+
 // Function to check if lovely is already installed
 async function isLovelyInstalled() {
   // Get the game directory
@@ -504,9 +550,8 @@ async function isLovelyInstalled() {
 
   // Check for lovely files based on platform
   if (platform === 'win32' || platform === 'linux') {
-    // Check for version.dll
-    const versionDllPath = path.join(gameDir, 'version.dll')
-    return await fs.pathExists(versionDllPath)
+    // Check for winmm.dll (Lovely 0.10+) or version.dll (Lovely 0.9 and older)
+    return (await findInstalledLovelyDll(gameDir)) !== null
   } else if (platform === 'darwin') {
     // Check for liblovely.dylib and run_lovely_macos.sh
     const libLovelyDylibPath = path.join(gameDir, 'liblovely.dylib')
@@ -583,23 +628,13 @@ async function installLovely(version: string = 'latest', forceUpdate: boolean = 
 
     // Install lovely based on the platform
     if (platform === 'win32' || platform === 'linux') {
-      // Copy version.dll to the game directory
-      const versionDll = path.join(extractDir, 'version.dll')
-      if (await fs.pathExists(versionDll)) {
-        await fs.copy(versionDll, path.join(gameDir, 'version.dll'))
-      } else {
-        // Look for version.dll in subdirectories
-        const files = await fs.readdir(extractDir)
-        for (const file of files) {
-          const filePath = path.join(extractDir, file)
-          if (fs.statSync(filePath).isDirectory()) {
-            const versionDllPath = path.join(filePath, 'version.dll')
-            if (await fs.pathExists(versionDllPath)) {
-              await fs.copy(versionDllPath, path.join(gameDir, 'version.dll'))
-              break
-            }
-          }
-        }
+      // Copy winmm.dll (Lovely 0.10+) or version.dll (0.9 and older) to the game directory
+      const installedDll = await installLovelyDll(extractDir, gameDir)
+      loggerService.info(`Installed lovely as ${installedDll}`)
+      if (platform === 'linux' && installedDll === 'winmm.dll') {
+        loggerService.warn(
+          'Lovely 0.10+ under Proton needs the Steam launch option: WINEDLLOVERRIDES="winmm=n,b" %command%'
+        )
       }
     } else if (platform === 'darwin') {
       // Copy liblovely.dylib and run_lovely_macos.sh to the game directory
